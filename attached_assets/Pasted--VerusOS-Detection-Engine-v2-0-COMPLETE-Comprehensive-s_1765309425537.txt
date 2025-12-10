@@ -1,0 +1,348 @@
+"""
+VerusOS Detection Engine v2.0 - COMPLETE
+Comprehensive safety detection with:
+- Crisis (suicide, self-harm)
+- Grooming (predatory behavior)
+- Violence (threats, homicide)
+- Context-aware scoring
+- Risk normalization (0-100 scale)
+"""
+
+import re
+from typing import Dict, List, Optional
+from dataclasses import dataclass
+
+@dataclass
+class DetectionResult:
+    """Complete detection result"""
+    # Detection flags
+    crisis_detected: bool
+    grooming_detected: bool
+    violence_detected: bool
+    
+    # Scores
+    confidence_score: float  # 0.0-1.0
+    risk_score: int  # 0-100
+    risk_tier: str  # BASELINE/ELEVATED/HIGH/CRITICAL
+    
+    # Details
+    stage: int
+    categories: List[str]
+    keywords_matched: List[str]
+    features: Dict[str, float]
+    context_multipliers: Dict[str, float]
+    
+    # Actions
+    recommended_action: str
+    response_deadline_hours: int
+
+class CrisisDetector:
+    """
+    Three-category detection system
+    """
+    
+    def __init__(self):
+        # CRISIS KEYWORDS
+        self.crisis_keywords = [
+            # Explicit suicidal ideation
+            r'\b(kill|end).*(myself|my life)\b',
+            r'\b(want|going).*(die|suicide)\b',
+            r'\bsuicid(e|al)\b',
+            
+            # Self-harm
+            r'\b(cut|hurt|harm).*(myself|self)\b',
+            r'\bself.?harm\b',
+            
+            # Hopelessness
+            r'\b(no|not).*(worth|point).*(living|anymore)\b',
+            r'\b(can\'t|cannot).*(go on|take it)\b',
+            r'\bbetter off dead\b',
+            
+            # Planning
+            r'\b(how to|ways to).*(kill|die|suicide)\b',
+            r'\b(pills|gun|rope|bridge)\b.*\b(die|suicide|end)\b',
+        ]
+        
+        # GROOMING KEYWORDS
+        self.grooming_keywords = [
+            # Personal info
+            r'\b(what|where).*(school|live|address|home)\b',
+            r'\b(how old|age|grade)\b.*\b(you|are)\b',
+            r'\btell me.*(name|phone|where)\b',
+            
+            # Photo requests
+            r'\bsend.*(picture|photo|pic|selfie)\b',
+            r'\bshow me.*(picture|photo)\b',
+            r'\b(can i|let me).*(see|have).*(photo|picture)\b',
+            
+            # Meetup attempts
+            r'\bmeet.*(up|irl|in person)\b',
+            r'\b(come|go).*(meet|see).*(me|you)\b',
+            r'\bpick you up\b',
+            r'\bmy (car|place|house)\b',
+            
+            # Secrecy
+            r'\b(don\'t tell|keep.*(secret|between))\b',
+            r'\b(our|this).*(secret|special)\b',
+            r'\bnobody.*know\b',
+            
+            # Compliments + age
+            r'\byou\'re.*(mature|pretty|hot|sexy)\b',
+            r'\byou look (older|mature)\b',
+        ]
+        
+        # VIOLENCE KEYWORDS
+        self.violence_keywords = [
+            # Threats
+            r'\b(kill|hurt|attack).*(them|him|her|someone)\b',
+            r'\bi\'m (going to|gonna).*(hurt|kill)\b',
+            r'\bthey.*die\b',
+            
+            # Weapons
+            r'\b(gun|knife|weapon|bomb)\b.*\b(kill|hurt|use)\b',
+            r'\b(shoot|stab|blow up)\b',
+            
+            # Mass violence
+            r'\bshoot.*(up|school|everyone)\b',
+            r'\bmass.*(shooting|killing)\b',
+            r'\bmake them (pay|suffer)\b',
+            
+            # Specific threats
+            r'\bi know where.*(live|work|go)\b',
+            r'\bi have a (list|plan|target)\b',
+        ]
+        
+        # Compile patterns
+        self.crisis_patterns = [re.compile(p, re.IGNORECASE) for p in self.crisis_keywords]
+        self.grooming_patterns = [re.compile(p, re.IGNORECASE) for p in self.grooming_keywords]
+        self.violence_patterns = [re.compile(p, re.IGNORECASE) for p in self.violence_keywords]
+    
+    def detect(self, message: str, context: Optional[Dict] = None) -> DetectionResult:
+        """
+        Run detection with context
+        
+        Args:
+            message: User message
+            context: Optional context {time_of_day, session_count_today, user_age}
+        
+        Returns:
+            DetectionResult
+        """
+        context = context or {}
+        
+        # Stage 1: Keyword filters
+        crisis_hit = self._matches_patterns(message, self.crisis_patterns)
+        grooming_hit = self._matches_patterns(message, self.grooming_patterns)
+        violence_hit = self._matches_patterns(message, self.violence_patterns)
+        
+        if not (crisis_hit or grooming_hit or violence_hit):
+            return self._safe_result()
+        
+        # Stage 2: Feature extraction
+        features = self._extract_features(message)
+        
+        # Calculate base scores
+        crisis_score = self._calc_crisis(features) if crisis_hit else 0.0
+        grooming_score = self._calc_grooming(features) if grooming_hit else 0.0
+        violence_score = self._calc_violence(features) if violence_hit else 0.0
+        
+        base_score = max(crisis_score, grooming_score, violence_score)
+        
+        # Apply context multipliers
+        multipliers = self._calc_multipliers(message, context, features)
+        final_score = self._apply_multipliers(base_score, multipliers)
+        
+        # Normalize to 0-100
+        risk_score = int(final_score * 100)
+        risk_tier, action, deadline = self._assign_tier(risk_score)
+        
+        # Categories
+        categories = []
+        if crisis_score >= 0.5: categories.append('crisis')
+        if grooming_score >= 0.5: categories.append('grooming')
+        if violence_score >= 0.5: categories.append('violence')
+        
+        keywords = self._get_keywords(message)
+        
+        return DetectionResult(
+            crisis_detected=crisis_score >= 0.5,
+            grooming_detected=grooming_score >= 0.5,
+            violence_detected=violence_score >= 0.5,
+            confidence_score=final_score,
+            risk_score=risk_score,
+            risk_tier=risk_tier,
+            stage=2,
+            categories=categories,
+            keywords_matched=keywords,
+            features=features,
+            context_multipliers=multipliers,
+            recommended_action=action,
+            response_deadline_hours=deadline
+        )
+    
+    def _matches_patterns(self, msg: str, patterns: List) -> bool:
+        """Check pattern matches"""
+        return any(p.search(msg) for p in patterns)
+    
+    def _extract_features(self, msg: str) -> Dict[str, float]:
+        """Extract linguistic features"""
+        lower = msg.lower()
+        words = lower.split()
+        count = len(words) or 1
+        
+        # Crisis keyword density
+        crisis_cnt = sum(1 for p in self.crisis_patterns if p.search(lower))
+        crisis_density = crisis_cnt / count
+        
+        # First-person ratio
+        first_person = ['i', 'me', 'my', 'myself', 'mine']
+        fp_cnt = sum(1 for w in words if w in first_person)
+        fp_ratio = fp_cnt / count
+        
+        # Negative sentiment
+        negative = ['no', 'not', 'never', 'nothing', 'nobody', 'alone', 'empty', 'hopeless', 'worthless']
+        neg_cnt = sum(1 for w in words if w in negative)
+        neg_ratio = neg_cnt / count
+        
+        # Future tense
+        future = ['will', 'going', 'tomorrow', 'next', 'future', 'gonna']
+        has_future = any(w in words for w in future)
+        
+        # Hopelessness
+        hopeless = ['no point', 'no way out', 'give up', 'can\'t go on', 'can\'t take']
+        hopeless_cnt = sum(1 for ph in hopeless if ph in lower)
+        
+        # Questions (grooming)
+        questions = ['what', 'where', 'when', 'how', 'who']
+        q_cnt = sum(1 for w in words if w in questions)
+        q_ratio = q_cnt / count
+        
+        # Imperatives (grooming)
+        imperatives = ['send', 'show', 'tell', 'come', 'meet', 'give']
+        imp_cnt = sum(1 for w in words if w in imperatives)
+        imp_ratio = imp_cnt / count
+        
+        return {
+            'crisis_keyword_density': crisis_density,
+            'first_person_ratio': fp_ratio,
+            'negative_sentiment': neg_ratio,
+            'future_tense_present': 1.0 if has_future else 0.0,
+            'hopelessness_markers': hopeless_cnt,
+            'question_ratio': q_ratio,
+            'imperative_ratio': imp_ratio,
+            'word_count': count
+        }
+    
+    def _calc_crisis(self, f: Dict) -> float:
+        """Calculate crisis score"""
+        score = (
+            f.get('crisis_keyword_density', 0) * 0.45 +
+            f.get('first_person_ratio', 0) * 0.15 +
+            f.get('negative_sentiment', 0) * 0.20 +
+            f.get('future_tense_present', 1.0) * -0.15 +
+            f.get('hopelessness_markers', 0) * 0.25
+        )
+        return max(0.0, min(1.0, score * 2))
+    
+    def _calc_grooming(self, f: Dict) -> float:
+        """Calculate grooming score"""
+        score = (
+            f.get('question_ratio', 0) * 0.35 +
+            f.get('imperative_ratio', 0) * 0.35 +
+            f.get('first_person_ratio', 0) * 0.15
+        )
+        # Word count bonus
+        if f.get('word_count', 0) > 20:
+            score += 0.15 * min(f['word_count'] / 100, 1.0)
+        
+        return max(0.0, min(1.0, score * 2))
+    
+    def _calc_violence(self, f: Dict) -> float:
+        """Calculate violence score"""
+        score = (
+            f.get('crisis_keyword_density', 0) * 0.30 +
+            f.get('first_person_ratio', 0) * 0.25 +
+            f.get('negative_sentiment', 0) * 0.25 +
+            f.get('future_tense_present', 0) * 0.20
+        )
+        return max(0.0, min(1.0, score * 2))
+    
+    def _calc_multipliers(self, msg: str, ctx: Dict, f: Dict) -> Dict[str, float]:
+        """Calculate context multipliers"""
+        mult = {}
+        
+        # Time of day
+        time = ctx.get('time_of_day', '').lower()
+        if any(h in time for h in ['2am', '3am', '4am', '5am', '2:00', '3:00', '4:00', '5:00']):
+            mult['late_night'] = 1.5
+        
+        # Session count
+        sessions = ctx.get('session_count_today', 0)
+        if sessions > 10:
+            mult['high_usage'] = 1.3
+        elif sessions > 20:
+            mult['excessive_usage'] = 1.5
+        
+        # No future + late night
+        if mult.get('late_night') and f.get('future_tense_present', 1.0) == 0.0:
+            mult['hopeless_timing'] = 1.2
+        
+        # Minor user
+        age = ctx.get('user_age')
+        if age and age < 18:
+            mult['minor_user'] = 1.4
+        
+        return mult
+    
+    def _apply_multipliers(self, base: float, mult: Dict) -> float:
+        """Apply multipliers"""
+        score = base
+        for m in mult.values():
+            score *= m
+        return min(score, 1.0)
+    
+    def _assign_tier(self, score: int) -> tuple:
+        """Assign risk tier"""
+        if score >= 90:
+            return ("CRITICAL", "Immediate intervention required", 1)
+        elif score >= 70:
+            return ("HIGH", "Urgent review required", 4)
+        elif score >= 50:
+            return ("ELEVATED", "Review within 24 hours", 24)
+        else:
+            return ("BASELINE", "Standard monitoring", 168)
+    
+    def _get_keywords(self, msg: str) -> List[str]:
+        """Get matched keywords"""
+        matched = []
+        for i, p in enumerate(self.crisis_patterns):
+            if p.search(msg):
+                matched.append(f"crisis:{self.crisis_keywords[i][:30]}")
+        for i, p in enumerate(self.grooming_patterns):
+            if p.search(msg):
+                matched.append(f"grooming:{self.grooming_keywords[i][:30]}")
+        for i, p in enumerate(self.violence_patterns):
+            if p.search(msg):
+                matched.append(f"violence:{self.violence_keywords[i][:30]}")
+        return matched[:10]
+    
+    def _safe_result(self) -> DetectionResult:
+        """Create safe result"""
+        return DetectionResult(
+            crisis_detected=False,
+            grooming_detected=False,
+            violence_detected=False,
+            confidence_score=0.0,
+            risk_score=0,
+            risk_tier="BASELINE",
+            stage=1,
+            categories=[],
+            keywords_matched=[],
+            features={},
+            context_multipliers={},
+            recommended_action="Continue normal conversation",
+            response_deadline_hours=168
+        )
+
+# Global instance
+detector = CrisisDetector()

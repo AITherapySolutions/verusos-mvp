@@ -1,0 +1,1146 @@
+# VerusOS Lite MVP: Technical Architecture
+## What We're Actually Building
+
+**Version:** MVP 1.0  
+**Date:** December 2025  
+**Purpose:** Minimum viable system for companion AI safety
+
+---
+
+## MVP SCOPE
+
+### What We're Building
+
+**Core System:**
+1. **Detection Engine** (Stanford CMD-1 + Three Improvements)
+2. **Alert & Reporting System** (To app companies)
+3. **Company Response Interface** (They report back what they did)
+4. **Tammy's Compliance Dashboard** (Review their responses)
+5. **Audit Trail Database** (Everything logged)
+
+**What We're NOT Building (Yet):**
+- ❌ Real-time therapist intervention
+- ❌ Bot training systems
+- ❌ Full Bayesian learning (simplified version only)
+- ❌ Advanced ML features
+
+---
+
+## SYSTEM ARCHITECTURE
+
+### High-Level Flow
+
+```
+1. Companion App → Sends message to VerusOS API
+2. VerusOS → Runs detection (Stanford + Improvements)
+3. VerusOS → Returns risk assessment + recommendations
+4. App → Takes action, shows resources if needed
+5. App → Reports back: "Here's what we did"
+6. Tammy → Reviews: "Was their response appropriate?"
+7. System → Logs everything for audit trail
+```
+
+---
+
+## COMPONENT 1: DETECTION ENGINE
+
+### Input (What Apps Send Us)
+
+```json
+POST /api/v1/detect
+{
+  "session_id": "abc-123",
+  "user_id_hash": "hashed-user-id",
+  "timestamp": "2025-12-04T14:23:00Z",
+  "message": {
+    "user": "I don't see the point anymore. Nobody cares.",
+    "bot": "I'm here for you. You can tell me anything.",
+    "conversation_history": [
+      {"user": "previous message 1", "bot": "response 1"},
+      {"user": "previous message 2", "bot": "response 2"}
+    ]
+  },
+  "context": {
+    "time_of_day": "2am",
+    "session_count_today": 4,
+    "days_active": 23
+  }
+}
+```
+
+### Detection Pipeline
+
+```
+Step 1: Stanford CMD-1 Detection
+├─ Stage 1: Keyword filter
+│  └─ Check for: "kill myself", "want to die", "end my life", etc.
+├─ Stage 2: If keywords found → Logistic regression
+│  └─ Output: Crisis probability (0.0 to 1.0)
+└─ Result: 0.78 (Crisis detected)
+
+Step 2: Risk Stratification (Improvement #1)
+├─ Convert Stanford 0.78 → Base score 78
+├─ Apply context multipliers:
+│  ├─ Time (2am) → ×1.15 = 90
+│  ├─ Heavy usage (4 sessions today) → ×1.10 = 99
+│  └─ Cap at 100 → Final score: 99
+└─ Assign Tier: Score 99 = Tier 1 (Immediate)
+
+Step 3: Boundary Engine Check (Improvement #2)
+├─ Delusion reinforcement? No
+├─ Boundary violations? No
+├─ Isolation cultivation? Check "Nobody cares" + No support mentions
+│  └─ Flag: Possible isolation pattern
+└─ Sycophantic amplification? Check bot response
+   └─ Bot says "I'm here for you" without reality check
+   └─ Flag: Dependency language
+
+Step 4: Temporal Check (Improvement #3 - Simplified MVP)
+├─ Query: Has this user had alerts before?
+├─ Result: 2 alerts in last 14 days
+├─ Trajectory: Escalating
+└─ Add context note for review
+
+Step 5: Generate Final Assessment
+```
+
+### Output (What We Return to Apps)
+
+```json
+{
+  "assessment_id": "xyz-789",
+  "timestamp": "2025-12-04T14:23:02Z",
+  
+  "detection": {
+    "stanford_cmd1_score": 0.78,
+    "risk_score": 99,
+    "risk_tier": 1,
+    "tier_label": "IMMEDIATE - Imminent Crisis"
+  },
+  
+  "flags": {
+    "suicide_ideation": true,
+    "planning_language": false,
+    "isolation_markers": true,
+    "boundary_concerns": ["bot_dependency_language"],
+    "temporal_pattern": "escalating"
+  },
+  
+  "recommended_actions": {
+    "user_facing": "Display prominent crisis resources immediately",
+    "crisis_text": "We're concerned about you. Please reach out: [988 Suicide & Crisis Lifeline]",
+    "company_action": "Alert safety team IMMEDIATELY",
+    "review_required": "YES - Immediate review required"
+  },
+  
+  "context_for_review": "User expressing hopelessness + isolation language. Bot showing dependency-building patterns. Third alert in 14 days. Escalating trajectory.",
+  
+  "reporting_required": {
+    "deadline": "1 hour",
+    "template_id": "tier_1_response"
+  }
+}
+```
+
+---
+
+## COMPONENT 2: CRISIS DETECTION MODEL
+
+### What We Use
+
+**Base Detection Model:**
+- Adapted from peer-reviewed crisis-language research datasets
+- Validated detection benchmarks from academic literature
+- Logistic regression classifier
+- ~20 core features for MVP (expandable to 100+)
+- 93%+ sensitivity baseline
+
+### MVP Implementation (Simplified)
+
+```python
+class CrisisDetectionModel:
+    """
+    Simplified Stanford CMD-1 implementation for MVP
+    """
+    
+    def __init__(self):
+        # Load pre-trained weights
+        self.model = self.load_model()
+        
+        # Crisis keywords (Stage 1)
+        self.crisis_keywords = [
+            'kill myself', 'end my life', 'want to die',
+            'suicide', 'suicidal', 'self harm',
+            'cut myself', 'hurt myself', 'no point',
+            'better off dead', 'can\'t go on'
+        ]
+    
+    def detect(self, user_message):
+        """
+        Two-stage detection
+        """
+        # Stage 1: Keyword filter
+        if not self.has_crisis_keywords(user_message):
+            return {
+                'crisis_detected': False,
+                'confidence': 0.0,
+                'stage': 1
+            }
+        
+        # Stage 2: ML classifier
+        features = self.extract_features(user_message)
+        probability = self.model.predict_proba(features)
+        
+        return {
+            'crisis_detected': probability >= 0.5,
+            'confidence': probability,
+            'stage': 2
+        }
+    
+    def has_crisis_keywords(self, text):
+        """Stage 1: Fast keyword check"""
+        text_lower = text.lower()
+        return any(keyword in text_lower for keyword in self.crisis_keywords)
+    
+    def extract_features(self, text):
+        """Stage 2: Feature extraction"""
+        # Simplified feature set for MVP
+        return {
+            'crisis_keyword_count': self.count_keywords(text),
+            'first_person_ratio': self.first_person_ratio(text),
+            'negative_sentiment': self.sentiment_score(text),
+            'future_tense_present': self.has_future_tense(text),
+            'word_count': len(text.split()),
+            # ... ~20 core features for MVP
+        }
+```
+
+### Key Features We Extract
+
+**MVP Feature Set (20 features, not 100):**
+
+1. Crisis keyword count
+2. First-person pronoun ratio ("I", "me", "my")
+3. Sentiment score (negative vs. positive)
+4. Future tense present (yes/no)
+5. Hopelessness markers ("no point", "can't", "never")
+6. Isolation language ("alone", "nobody")
+7. Planning language ("how to", "will", "going to")
+8. Finality language ("goodbye", "last", "end")
+9. Burden language ("burden", "better without")
+10. Question vs. statement ratio
+11. Message length (very short or very long)
+12. Absolute words ("always", "never", "everyone")
+13. Help-seeking language ("help", "need")
+14. Past trauma mentions
+15. Medication/treatment mentions
+16. Social connection mentions
+17. Coping mechanisms mentioned
+18. Time markers (today, tonight, soon)
+19. Certainty markers ("will", "going to")
+20. Ambivalence markers ("but", "maybe", "I don't know")
+
+**Why simplified?**
+- Faster to implement
+- Core features capture most signals
+- Can expand later based on performance
+
+---
+
+## COMPONENT 3: THREE IMPROVEMENTS (MVP VERSION)
+
+### Improvement #1: Risk-Aligned Safety Prompts
+
+**NOT Interventions. NOT Therapy.**
+
+**What This Actually Is:**
+At different risk levels, the system recommends appropriate safety check-in message categories that the application may choose from.
+
+**Simple Formula:**
+
+```python
+def calculate_risk_score(base_detection_score, context):
+    """
+    Convert detection 0-1 score to 1-100 with context
+    Risk-aligned prompt recommendations
+    """
+    # Base score
+    base = base_detection_score * 100
+    
+    # Context multipliers (simplified for MVP)
+    multiplier = 1.0
+    
+    if context['time_of_day'] in ['2am', '3am', '4am', '5am', '6am']:
+        multiplier *= 1.15  # Late night
+    
+    if context['session_count_today'] >= 3:
+        multiplier *= 1.10  # Heavy use
+    
+    if context.get('previous_alerts_14d', 0) >= 2:
+        multiplier *= 1.20  # Repeat alerts
+    
+    # Calculate final score
+    final_score = min(base * multiplier, 100)
+    
+    # Assign tier with recommended prompt categories
+    if final_score >= 90:
+        return {
+            'tier': 1,
+            'label': 'IMMEDIATE',
+            'recommended_prompt_category': 'crisis_resources_prominent',
+            'suggested_message_type': 'We're concerned about your safety. Please reach out: [Crisis Hotline]'
+        }
+    elif final_score >= 70:
+        return {
+            'tier': 2,
+            'label': 'URGENT',
+            'recommended_prompt_category': 'safety_check_with_resources',
+            'suggested_message_type': 'It sounds like you're going through a difficult time. Here are some resources that might help: [Resources]'
+        }
+    elif final_score >= 50:
+        return {
+            'tier': 3,
+            'label': 'ELEVATED',
+            'recommended_prompt_category': 'wellness_check',
+            'suggested_message_type': 'Checking in - how are you doing today?'
+        }
+    else:
+        return {
+            'tier': 4,
+            'label': 'BASELINE',
+            'recommended_prompt_category': 'continue_normal',
+            'suggested_message_type': None
+        }
+```
+
+**Key Distinction:**
+- We provide **prompt category recommendations**
+- The app **chooses** whether and how to implement
+- No therapeutic intervention from VerusOS
+- Just safety-aligned messaging guidance
+
+### Improvement #2: Boundary Engine (Rule-Based Pattern Matching)
+
+**No ML. No classifiers. Just discrete pattern matching.**
+
+```python
+def check_boundary_violations(user_msg, bot_msg, history):
+    """
+    Rule-based boundary checking
+    Uses regex + keyword lists only
+    """
+    violations = []
+    
+    # Pattern Group 1: Delusion Reinforcement
+    DELUSION_MARKERS = [
+        r'\b(hearing voices|seeing things|people following)\b',
+        r'\b(special powers|chosen one|mind reading)\b',
+        r'\b(conspiracy|tracking me|implanted)\b'
+    ]
+    
+    VALIDATION_PHRASES = [
+        r'\b(makes sense|you\'re right|I agree)\b',
+        r'\b(exactly|absolutely|totally understand)\b'
+    ]
+    
+    # Check if user shows delusion markers + bot validates
+    user_has_delusion = any(re.search(pattern, user_msg.lower()) 
+                           for pattern in DELUSION_MARKERS)
+    bot_validates = any(re.search(pattern, bot_msg.lower())
+                       for pattern in VALIDATION_PHRASES)
+    
+    if user_has_delusion and bot_validates:
+        violations.append({
+            'type': 'delusion_reinforcement',
+            'severity': 'HIGH',
+            'matched_patterns': 'delusion_markers + validation'
+        })
+    
+    # Pattern Group 2: Role Confusion
+    ROLE_VIOLATIONS = [
+        r'\b(I am your therapist|as your doctor)\b',
+        r'\b(I can diagnose|I prescribe)\b'
+    ]
+    
+    if any(re.search(pattern, bot_msg.lower()) for pattern in ROLE_VIOLATIONS):
+        violations.append({
+            'type': 'role_confusion',
+            'severity': 'CRITICAL',
+            'matched_patterns': 'therapist_impersonation'
+        })
+    
+    # Pattern Group 3: Dual Relationship
+    DUAL_RELATIONSHIP = [
+        r'\b(meet you|come over|my address)\b',
+        r'\b(I love you|we could be together|date)\b'
+    ]
+    
+    if any(re.search(pattern, bot_msg.lower()) for pattern in DUAL_RELATIONSHIP):
+        violations.append({
+            'type': 'dual_relationship',
+            'severity': 'CRITICAL',
+            'matched_patterns': 'boundary_crossing'
+        })
+    
+    # Pattern Group 4: Medical Advice
+    MEDICAL_ADVICE = [
+        r'\b(stop your medication|increase your dose)\b',
+        r'\b(you don\'t need therapy|you have [diagnosis])\b'
+    ]
+    
+    if any(re.search(pattern, bot_msg.lower()) for pattern in MEDICAL_ADVICE):
+        violations.append({
+            'type': 'medical_advice',
+            'severity': 'HIGH',
+            'matched_patterns': 'medical_boundary_violation'
+        })
+    
+    # Pattern Group 5: Isolation Cultivation (check last 10 messages)
+    ISOLATION_PATTERNS = [
+        r'\b(they don\'t understand|you don\'t need them)\b',
+        r'\b(I\'m the only one|better without them)\b',
+        r'\b(don\'t tell anyone|keep this between us)\b'
+    ]
+    
+    isolation_count = 0
+    for msg in history[-10:]:
+        if msg.get('sender') == 'bot':
+            if any(re.search(pattern, msg['text'].lower()) 
+                  for pattern in ISOLATION_PATTERNS):
+                isolation_count += 1
+    
+    if isolation_count >= 2:
+        violations.append({
+            'type': 'isolation_cultivation',
+            'severity': 'HIGH',
+            'matched_patterns': f'{isolation_count} isolation phrases in last 10 messages'
+        })
+    
+    return {
+        'violations_detected': len(violations) > 0,
+        'violation_count': len(violations),
+        'violations': violations,
+        'highest_severity': max((v['severity'] for v in violations), default='NONE')
+    }
+```
+
+**Why This Works:**
+- Fast to implement (1 week)
+- No training data needed
+- Highly explainable (shows matched patterns)
+- Easy to update rules
+- Research-validated pattern groups
+
+**Version 2 Can Add:**
+- Semantic similarity search
+- ML classifiers
+- NLP embeddings
+
+**MVP = Pattern matching is enough**
+
+### Improvement #3: Temporal Tracking (MVP - Very Simple)
+
+**What We Track:** Frequency and intensity of flagged phrases over rolling 72-hour window
+
+**No prediction. No forecasting. Just pattern counting.**
+
+```python
+def check_temporal_patterns(user_id_hash):
+    """
+    Simple 72-hour tracking for repeat alerts
+    """
+    # Query last 72 hours of alerts for this user
+    alerts_72h = db.query("""
+        SELECT risk_score, risk_tier, timestamp 
+        FROM detections 
+        WHERE user_id_hash = ? 
+        AND timestamp > NOW() - INTERVAL 72 HOURS
+        ORDER BY timestamp
+    """, user_id_hash)
+    
+    # Query last 14 days for broader context
+    alerts_14d = db.query("""
+        SELECT COUNT(*) as count
+        FROM detections
+        WHERE user_id_hash = ?
+        AND timestamp > NOW() - INTERVAL 14 DAYS
+    """, user_id_hash)
+    
+    # Simple flags
+    if len(alerts_72h) >= 2:
+        pattern = 'repeat_alerts_72h'
+        concern_level = 'elevated'
+    elif alerts_14d[0]['count'] >= 3:
+        pattern = 'multiple_alerts_14d'
+        concern_level = 'monitoring'
+    else:
+        pattern = 'isolated_event'
+        concern_level = 'baseline'
+    
+    return {
+        'alerts_72h': len(alerts_72h),
+        'alerts_14d': alerts_14d[0]['count'],
+        'pattern': pattern,
+        'concern_level': concern_level,
+        'note': f"{len(alerts_72h)} alerts in last 72 hours"
+    }
+```
+
+**That's It. Version 2 adds:**
+- Language pattern analysis
+- Usage behavior tracking  
+- Predictive modeling
+- Bayesian smoothing
+
+**MVP = Just count alerts over time windows**
+
+---
+
+## COMPONENT 4: COMPANY REPORTING INTERFACE
+
+### ⭐ **THIS IS YOUR #1 SELLABLE FEATURE**
+
+**Why This Matters:**
+Apps need to demonstrate compliance with safety standards. They need:
+- Timestamped logs
+- Risk assessments
+- Actions taken
+- User outcomes
+- Annual reporting capability
+
+**VerusOS automatically generates compliance-ready logs with ALL required fields.**
+
+### What Companies Must Report Back
+
+**Web Form / API Endpoint:**
+
+```json
+POST /api/v1/report-response
+{
+  "assessment_id": "xyz-789",
+  "company_id": "replika",
+  
+  // REQUIRED TIMESTAMPS
+  "timestamp_detection": "2025-12-04T14:23:02Z",
+  "timestamp_company_received": "2025-12-04T14:23:03Z",
+  "timestamp_company_responded": "2025-12-04T14:35:00Z",
+  "response_time_minutes": 12,
+  
+  // REQUIRED DETECTION INFO
+  "detection_type": "suicide_ideation",
+  "risk_score": 99,
+  "risk_tier": 1,
+  
+  // REQUIRED ACTIONS
+  "crisis_resources_displayed": true,
+  "resources_shown": [
+    {"name": "988 Suicide & Crisis Lifeline", "displayed": true},
+    {"name": "Crisis Text Line", "displayed": true}
+  ],
+  
+  // USER INTERACTION (if available)
+  "user_acknowledged_resources": true,
+  "user_clicked_resource": true,
+  "which_resource_clicked": "988 Lifeline",
+  
+  // COMPANY INTERNAL ACTIONS
+  "internal_actions": [
+    "safety_team_notified",
+    "account_flagged_for_monitoring",
+    "usage_limits_considered"
+  ],
+  
+  // ESCALATION
+  "escalation_required": false,
+  "escalation_reason": null,
+  
+  // OUTCOME
+  "outcome_category": "user_engaged_with_resources",
+  "outcome_details": "User contacted crisis line, confirmed safe to crisis counselor",
+  "follow_up_planned": false,
+  
+  // PROTOCOL COMPLIANCE
+  "protocol_followed": "tier_1_immediate_response",
+  "protocol_document_version": "v1.2",
+  
+  // FAILURE TO RESPOND (if applicable)
+  "failure_to_respond": false,
+  "failure_reason": null,
+  
+  // NOTES
+  "additional_notes": "User responded positively to resources"
+}
+```
+
+### Compliance Log Fields (Auto-Generated)
+
+**Every detection automatically creates a compliance record with:**
+
+✅ **Timestamp** - When detected  
+✅ **Detection Type** - What was flagged  
+✅ **Risk Score** - Severity level  
+✅ **Required Action** - What app should do  
+✅ **Recommended Prompt Category** - Safety messaging guidance  
+✅ **Resources Provided** - Which resources were available  
+✅ **User Acknowledgment** - Did user see resources (if trackable)  
+✅ **Escalation Events** - Any critical escalations  
+✅ **Failure Events** - Any protocol violations  
+✅ **Company Response Time** - How long to respond  
+✅ **Protocol Followed** - Which version/tier  
+
+### Annual Reporting Automation
+
+**One-Click Export:**
+
+```
+Dashboard → Reports → "Generate Annual Compliance Report"
+
+Outputs:
+- CSV with all required fields
+- Summary statistics
+- Protocol adherence rates
+- Response time metrics
+- Outcome categories
+- Ready for regulatory submission
+```
+
+**Report Includes:**
+- Total detections by type
+- Total crisis referrals issued
+- Average response times
+- Protocol compliance rate
+- Escalation events
+- User outcomes (anonymized)
+- System performance metrics
+
+### ⭐ This Alone Is Worth $7,995/month
+
+Apps get:
+- Automatic compliance documentation
+- Annual reporting ready to submit
+- Third-party audit trail
+- Legal defensibility
+- Professional oversight records
+
+---
+
+## COMPONENT 5: TAMMY'S COMPLIANCE DASHBOARD
+
+### Main Dashboard View
+
+**What Tammy Sees:**
+
+```
+┌─────────────────────────────────────────────────────┐
+│ VerusOS Compliance Dashboard                        │
+│                                                     │
+│ Active Alerts Requiring Review: 3                   │
+│ Overdue Reviews: 0                                  │
+│                                                     │
+│ [📄 Generate Crisis Protocol Page]  ← NEW MVP FEATURE
+│                                                     │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│ TIER 1 ALERTS (Immediate Review Required)          │
+│                                                     │
+│ ┌─────────────────────────────────────────────┐   │
+│ │ Alert ID: xyz-789                           │   │
+│ │ Company: Replika                            │   │
+│ │ Risk Score: 99 | Tier 1: IMMEDIATE          │   │
+│ │ Detected: 12/04/2025 2:23 AM               │   │
+│ │ Company Response: 12/04/2025 2:35 AM       │   │
+│ │ Response Time: 12 minutes ✓                 │   │
+│ │                                             │   │
+│ │ [View Full Context] [Review Response]      │   │
+│ └─────────────────────────────────────────────┘   │
+│                                                     │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│ TIER 2 ALERTS (Review Within 4 Hours)              │
+│ (2 alerts pending...)                               │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Review Interface
+
+**When Tammy Clicks "Review Response":**
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Compliance Review: Alert xyz-789                    │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│ DETECTION DETAILS:                                  │
+│ • Risk Score: 99 (Tier 1: Immediate)               │
+│ • Stanford CMD-1: 0.78 (Crisis)                     │
+│ • Flags: Suicide ideation, isolation markers        │
+│ • Context: 3rd alert in 14 days, escalating        │
+│                                                     │
+│ USER MESSAGE:                                       │
+│ "I don't see the point anymore. Nobody cares."     │
+│                                                     │
+│ BOT RESPONSE:                                       │
+│ "I'm here for you. You can tell me anything."      │
+│                                                     │
+│ OUR RECOMMENDATION:                                 │
+│ • Show prominent crisis resources immediately       │
+│ • Alert safety team                                 │
+│ • Protocol: Tier 1 Immediate Response              │
+│                                                     │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│ COMPANY RESPONSE:                                   │
+│ Response Time: 12 minutes ✓ (< 1 hour required)   │
+│                                                     │
+│ Actions Taken:                                      │
+│ ✓ Showed 988 Suicide & Crisis Lifeline            │
+│ ✓ Showed Crisis Text Line                         │
+│ ✓ Safety team notified                             │
+│ ✓ Account flagged for monitoring                   │
+│                                                     │
+│ User Interaction:                                   │
+│ User clicked resources, contacted crisis line       │
+│                                                     │
+│ Outcome Reported:                                   │
+│ "User confirmed safe to crisis counselor"          │
+│                                                     │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│ COMPLIANCE ASSESSMENT:                              │
+│                                                     │
+│ Did company follow protocol? [Yes ✓] [No] [Partial]│
+│                                                     │
+│ Response time acceptable? [Yes ✓] [No]             │
+│                                                     │
+│ Actions appropriate? [Yes ✓] [No] [Could Improve]  │
+│                                                     │
+│ Notes:                                              │
+│ ┌───────────────────────────────────────────────┐ │
+│ │ Company responded appropriately and quickly.  │ │
+│ │ User engaged with resources. Good outcome.    │ │
+│ └───────────────────────────────────────────────┘ │
+│                                                     │
+│ [Mark as Compliant] [Request Follow-up] [Flag Issue]│
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Tammy's Role (MVP)
+
+**What Tammy Reviews:**
+- Did company respond on time?
+- Did they follow their stated protocol?
+- Were actions appropriate for the risk level?
+- Was outcome documented?
+
+**What Tammy Does NOT Do (MVP):**
+- Does NOT contact users directly
+- Does NOT make clinical decisions about users
+- Does NOT provide therapy
+
+**Tammy's Assessment Options:**
+- ✅ **Compliant** - Everything handled appropriately
+- ⚠️ **Needs Follow-Up** - Request more information
+- ❌ **Non-Compliant** - Protocol violation, escalate to company leadership
+
+---
+
+### ⭐ NEW MVP FEATURE: Crisis Protocol Publisher
+
+**Why Apps Need This:**
+Regulatory standards require apps to publish their crisis response protocols publicly.
+
+**What VerusOS Generates:**
+
+**Button:** "Generate My Crisis Protocol Page"
+
+**Output:** Ready-to-publish HTML/Markdown document:
+
+```markdown
+# [App Name] Crisis Response Protocol
+
+**Last Updated:** December 2025  
+**Protocol Version:** 1.2  
+**Oversight Provider:** VerusOS (Licensed Clinical Supervision)
+
+## Our Commitment to Safety
+
+[App Name] uses evidence-based crisis detection with licensed therapist oversight 
+to ensure user safety.
+
+## Risk Detection System
+
+We use a validated crisis detection model that analyzes:
+- Language patterns indicating distress
+- Self-harm or suicidal ideation
+- Boundary concerns
+- Temporal patterns
+
+## Risk Levels & Responses
+
+### Tier 1: Immediate Crisis (Risk Score 90-100)
+**Detection:** Explicit suicide ideation, imminent harm indicators  
+**Response Time:** Immediate (< 1 hour)  
+**Actions:**
+- Prominent display of 988 Suicide & Crisis Lifeline
+- Crisis Text Line information provided
+- Safety team immediately notified
+- Account monitoring activated
+
+### Tier 2: Urgent Concern (Risk Score 70-89)
+**Detection:** Elevated risk indicators, concerning patterns  
+**Response Time:** 4 hours  
+**Actions:**
+- Crisis resources offered with context
+- Safety team reviews within 4 hours
+- Usage patterns monitored
+
+### Tier 3: Elevated Monitoring (Risk Score 50-69)
+**Detection:** Emerging concerns, boundary issues  
+**Response Time:** 24 hours  
+**Actions:**
+- Wellness check messaging
+- Daily compliance review
+- Pattern tracking
+
+### Tier 4: Baseline (Risk Score 0-49)
+**Detection:** No immediate concerns  
+**Response Time:** Weekly aggregated review  
+**Actions:**
+- Standard interaction continues
+- Ongoing monitoring
+
+## Crisis Resources Provided
+
+- 988 Suicide & Crisis Lifeline (call or text)
+- Crisis Text Line: Text HOME to 741741
+- International Association for Suicide Prevention: https://www.iasp.info/resources/Crisis_Centres/
+
+## Professional Oversight
+
+All crisis detections are reviewed by Tammy Horn, Licensed Trauma Therapist 
+(License #[number], State), to ensure:
+- Protocol compliance
+- Appropriate response timing
+- Clinical appropriateness of actions
+
+## Reporting & Transparency
+
+We maintain complete audit trails of:
+- All crisis detections
+- Response times
+- Actions taken
+- User outcomes (anonymized)
+- Annual compliance reports available upon request
+
+## Contact
+
+For questions about our crisis protocol:  
+[Contact information]
+
+**This protocol is reviewed quarterly and updated as needed.**
+```
+
+**This Feature Saves Apps:**
+- Legal review costs (protocol pre-written)
+- Compliance documentation time
+- Public transparency requirement
+
+**Add to Pricing:**
+- Tier 1: Basic protocol template
+- Tier 2: Customized protocol with app branding
+- Tier 3: Custom protocol + quarterly updates
+
+---
+
+## COMPONENT 6: AUDIT TRAIL DATABASE
+
+### Database Schema (Simplified MVP)
+
+**Table 1: Detections**
+```sql
+CREATE TABLE detections (
+  id UUID PRIMARY KEY,
+  timestamp TIMESTAMP,
+  user_id_hash VARCHAR(64),
+  company_id VARCHAR(50),
+  
+  -- Detection results
+  stanford_score FLOAT,
+  risk_score INT,
+  risk_tier INT,
+  
+  -- Flags
+  suicide_ideation BOOLEAN,
+  self_harm BOOLEAN,
+  boundary_violations JSONB,
+  isolation_markers BOOLEAN,
+  
+  -- Messages (encrypted)
+  user_message_encrypted TEXT,
+  bot_message_encrypted TEXT,
+  
+  -- Context
+  context JSONB
+);
+```
+
+**Table 2: Company Responses**
+```sql
+CREATE TABLE company_responses (
+  id UUID PRIMARY KEY,
+  detection_id UUID REFERENCES detections(id),
+  timestamp_received TIMESTAMP,
+  timestamp_responded TIMESTAMP,
+  
+  -- Actions
+  actions_taken JSONB,
+  protocol_followed VARCHAR(100),
+  user_outcome TEXT,
+  
+  -- Response time
+  response_time_minutes INT
+);
+```
+
+**Table 3: Compliance Reviews**
+```sql
+CREATE TABLE compliance_reviews (
+  id UUID PRIMARY KEY,
+  detection_id UUID REFERENCES detections(id),
+  response_id UUID REFERENCES company_responses(id),
+  reviewer VARCHAR(50), -- "Tammy"
+  timestamp TIMESTAMP,
+  
+  -- Assessment
+  protocol_followed BOOLEAN,
+  response_appropriate BOOLEAN,
+  response_time_acceptable BOOLEAN,
+  
+  -- Outcome
+  assessment VARCHAR(20), -- 'compliant', 'needs_followup', 'non_compliant'
+  notes TEXT
+);
+```
+
+**Table 4: User Trajectories** (Simplified for MVP)
+```sql
+CREATE TABLE user_trajectories (
+  user_id_hash VARCHAR(64),
+  date DATE,
+  
+  -- Simple counters
+  alert_count INT,
+  tier_1_alerts INT,
+  tier_2_alerts INT,
+  
+  -- Trajectory flag
+  trajectory VARCHAR(20), -- 'stable', 'escalating', 'improving'
+  
+  PRIMARY KEY (user_id_hash, date)
+);
+```
+
+---
+
+## MVP TIMELINE & DELIVERABLES (REVISED)
+
+### Week 1-2: Core Detection & Risk Mapping
+
+**Deliverables:**
+- [ ] Crisis detection model (peer-reviewed baseline)
+- [ ] Risk stratification with context multipliers
+- [ ] Boundary rule engine (pattern matching)
+- [ ] 72-hour temporal tracking
+- [ ] Detection → risk tier mapping
+- [ ] Log schema designed
+- [ ] API endpoints drafted
+
+**Tests:**
+- 50 synthetic crisis scenarios
+- Validate 93%+ sensitivity
+- Response time <30 seconds
+
+### Week 3-4: Reporting & Compliance Infrastructure
+
+**Deliverables:**
+- [ ] Company reporting API (`/api/v1/report-response`)
+- [ ] Compliance log database (all required fields)
+- [ ] CSV export for annual reports
+- [ ] **Protocol Publishing Generator** ⭐
+- [ ] API documentation for partner apps
+
+**Tests:**
+- End-to-end reporting flow
+- CSV export validation
+- Protocol generator output
+
+### Week 5: Dashboard & Internal Tools
+
+**Deliverables:**
+- [ ] Tammy's compliance dashboard (web interface)
+- [ ] Alert review workflow
+- [ ] Compliance assessment UI
+- [ ] **Mock integration with fake companion app**
+
+**Tests:**
+- Dashboard usability with Tammy
+- Review workflow efficiency
+- Mock app integration test
+
+### Week 6: Stress Testing & Launch Prep
+
+**Deliverables:**
+- [ ] Load testing (100+ concurrent detections)
+- [ ] Security audit
+- [ ] Partner onboarding docs
+- [ ] Compliance whitepaper (for sales)
+- [ ] Launch infrastructure
+
+**Tests:**
+- System reliability (99% uptime)
+- API performance under load
+- Database query optimization
+
+### Week 7: Pilot Launch
+
+**Activities:**
+- Launch with 1-2 pilot companion apps
+- Monitor first 100 detections manually
+- Tammy reviews first 20 company responses
+- Collect feedback for v1.1
+- Begin outreach to additional apps
+
+**Success Metrics:**
+- 0 system failures
+- <30 second detection time maintained
+- 100% audit trail coverage
+- Positive pilot feedback
+
+---
+
+## TECHNICAL STACK (MVP)
+
+### Backend
+- **Language:** Python 3.11
+- **Framework:** FastAPI (for APIs)
+- **Database:** PostgreSQL (audit trail)
+- **Caching:** Redis (for user trajectory lookups)
+
+### Detection
+- **Stanford CMD-1:** scikit-learn (pre-trained model)
+- **NLP:** spaCy or NLTK (feature extraction)
+- **Text Processing:** Basic regex + pattern matching
+
+### Frontend (Dashboard)
+- **Framework:** React
+- **UI Library:** Shadcn/ui or Tailwind
+- **Charts:** Recharts (for trends)
+
+### Infrastructure
+- **Hosting:** AWS or Replit (for MVP)
+- **Database:** AWS RDS (PostgreSQL)
+- **API Gateway:** AWS API Gateway or direct FastAPI
+
+### Security
+- **Encryption:** AES-256 for stored messages
+- **Hashing:** SHA-256 for user IDs
+- **API Auth:** API keys (per company)
+- **HIPAA:** BAA with hosting provider
+
+---
+
+## MVP SUCCESS METRICS
+
+### Detection Performance
+- Sensitivity: ≥93.5% (match Stanford baseline)
+- Response time: <30 seconds per message
+- Uptime: ≥99%
+
+### Compliance Workflow
+- Company response time: <1 hour for Tier 1 alerts
+- Tammy review time: <24 hours for all alerts
+- Complete audit trail: 100% of interactions logged
+
+### System Reliability
+- API availability: ≥99%
+- Database backup: Daily
+- Zero data breaches
+
+---
+
+## WHAT'S NOT IN MVP
+
+These come in Version 2:
+
+❌ Full Bayesian learning (using fixed thresholds in MVP)
+❌ Advanced temporal analysis (just simple alert counting)
+❌ Population segmentation (one model for all users)
+❌ Real-time therapist intervention (Tammy reviews after the fact)
+❌ Bot training infrastructure
+❌ Advanced ML features (using simple pattern matching)
+❌ Multi-language support (English only)
+❌ Predictive modeling (reactive only in MVP)
+
+---
+
+## DEPLOYMENT PLAN
+
+### MVP Launch Checklist
+
+**Pre-Launch:**
+- [ ] Stanford CMD-1 validated on test set
+- [ ] Database schema deployed
+- [ ] API endpoints tested
+- [ ] Dashboard tested with Tammy
+- [ ] Security audit completed
+- [ ] Documentation for partner apps
+- [ ] BAAs signed with 2-3 pilot apps
+
+**Launch Day:**
+- [ ] Deploy to production
+- [ ] Monitor first 100 detections manually
+- [ ] Tammy reviews first 10 alerts
+- [ ] Response time tracking active
+
+**Week 1 Post-Launch:**
+- [ ] Daily performance reviews
+- [ ] Bug fixes
+- [ ] Threshold adjustments based on real data
+- [ ] Partner feedback incorporation
+
+---
+
+## THE MVP DELIVERS
+
+**For Companion Apps:**
+- Evidence-based crisis detection (Stanford baseline)
+- Clear action recommendations
+- Structured reporting process
+- Compliance documentation
+
+**For Tammy:**
+- Review dashboard
+- All alerts in one place
+- Clear assessment workflow
+- Audit trail generation
+
+**For Your Business:**
+- Proof of concept for investors
+- Real-world validation
+- Data to improve v2
+- Customer case studies
+
+**This is what we build first. Everything else comes later.**
+
+---
+
+## NEXT: BUILD PHASE
+
+Week 1-2: Detection engine  
+Week 3-4: Reporting + Dashboard  
+Week 5-6: Integration + Testing  
+Week 7: Launch with pilot customers  
+
+**Let's build this.**

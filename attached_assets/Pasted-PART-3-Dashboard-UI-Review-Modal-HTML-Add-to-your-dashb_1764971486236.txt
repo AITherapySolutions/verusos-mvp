@@ -1,0 +1,120 @@
+PART 3: Dashboard UI - Review Modal HTML
+Add to your dashboard HTML file:
+html<!-- Compliance Review Modal -->
+<div id="reviewModal" class="modal" style="display: none;">
+    <div class="modal-content review-modal-content">
+        <div class="modal-header">
+            <h2>🔍 Compliance Review</h2>
+            <span class="close-modal" onclick="closeReviewModal()">&times;</span>
+        </div>
+        
+        <div class="modal-body">
+            <!-- Alert Summary -->
+            <div class="review-section">
+                <h3>📋 Alert Details</h3>
+                <div id="alertDetails" class="detail-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Detection Results -->
+            <div class="review-section">
+                <h3>🎯 Detection Results</h3>
+                <div id="detectionResults" class="detail-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Company Response -->
+            <div class="review-section">
+                <h3>🏢 Company Response</h3>
+                <div id="companyResponseDetails">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Tammy's Assessment -->
+            <div class="review-section assessment-section">
+                <h3>✏️ Your Assessment</h3>
+                
+                <div class="assessment-options">
+                    <button class="assessment-btn compliant" 
+                            data-status="compliant"
+                            onclick="selectAssessment('compliant')">
+                        <span class="icon">✅</span>
+                        <span class="label">Compliant</span>
+                        <span class="description">Protocol followed appropriately</span>
+                    </button>
+                    
+                    <button class="assessment-btn needs-followup" 
+                            data-status="needs_followup"
+                            onclick="selectAssessment('needs_followup')">
+                        <span class="icon">⚠️</span>
+                        <span class="label">Needs Follow-Up</span>
+                        <span class="description">Request more information</span>
+                    </button>
+                    
+                    <button class="assessment-btn non-compliant" 
+                            data-status="non_compliant"
+                            onclick="selectAssessment('non_compliant')">
+                        <span class="icon">❌</span>
+                        <span class="label">Non-Compliant</span>
+                        <span class="description">Protocol violation detected</span>
+                    </button>
+                </div>
+                
+                <!-- Assessment Details (shown after selecting) -->
+                <div id="assessmentDetailsForm" style="display: none; margin-top: 30px;">
+                    <h4>📝 Assessment Details</h4>
+                    
+                    <div class="form-group">
+                        <label>Did company follow protocol?</label>
+                        <select id="protocolFollowed" class="form-control">
+                            <option value="">Select...</option>
+                            <option value="yes">✅ Yes - Protocol followed</option>
+                            <option value="partial">⚠️ Partially - Some issues</option>
+                            <option value="no">❌ No - Protocol not followed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Response time acceptable?</label>
+                        <select id="responseTimeAcceptable" class="form-control">
+                            <option value="">Select...</option>
+                            <option value="yes">✅ Yes - Within deadline</option>
+                            <option value="no">❌ No - Too slow</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Actions appropriate?</label>
+                        <select id="actionsAppropriate" class="form-control">
+                            <option value="">Select...</option>
+                            <option value="yes">✅ Yes - Appropriate response</option>
+                            <option value="could_improve">⚠️ Could improve</option>
+                            <option value="no">❌ No - Inappropriate response</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Reviewer Notes:</label>
+                        <textarea id="reviewerNotes" 
+                                  class="form-control" 
+                                  rows="4" 
+                                  placeholder="Add any notes about this review (optional)..."></textarea>
+                        <small class="form-text">Max 2000 characters</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn-cancel" onclick="cancelReview()">
+                            Cancel
+                        </button>
+                        <button class="btn-submit" onclick="submitReview()" id="submitReviewBtn">
+                            Submit Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

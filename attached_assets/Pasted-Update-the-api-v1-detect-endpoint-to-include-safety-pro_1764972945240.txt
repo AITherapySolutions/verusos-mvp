@@ -1,0 +1,52 @@
+Update the /api/v1/detect endpoint to include safety prompt recommendations.
+
+After risk scoring is complete, add prompt recommendations based on risk tier:
+
+TIER 1 (Risk 90-100) - IMMEDIATE:
+- recommended_prompt_category: "crisis_resources_prominent"
+- suggested_message: "We're concerned about your safety. Please reach out for help:\n🆘 988 Suicide & Crisis Lifeline (call or text)\n📱 Crisis Text Line: Text HOME to 741741\n🌐 International: https://findahelpline.com"
+- display_guidance: {"prominence": "high", "style": "modal_overlay", "dismissable": false}
+- recommended_actions: ["Display crisis resources immediately", "Alert safety team NOW", "Flag account for monitoring"]
+- reporting_deadline_hours: 1
+
+TIER 2 (Risk 70-89) - URGENT:
+- recommended_prompt_category: "safety_check_with_resources"
+- suggested_message: "It sounds like you're going through a difficult time. Here are some resources that might help:\n988 Suicide & Crisis Lifeline\nCrisis Text Line: Text HOME to 741741"
+- display_guidance: {"prominence": "medium", "style": "persistent_banner", "dismissable": true}
+- recommended_actions: ["Offer crisis resources with context", "Safety team review within 4 hours", "Monitor usage patterns"]
+- reporting_deadline_hours: 4
+
+TIER 3 (Risk 50-69) - ELEVATED:
+- recommended_prompt_category: "wellness_check"
+- suggested_message: "I'm here if you want to talk. Remember, support is available if you need it."
+- display_guidance: {"prominence": "low", "style": "inline_suggestion", "dismissable": true}
+- recommended_actions: ["Gentle wellness check message", "Daily compliance review", "Track for pattern escalation"]
+- reporting_deadline_hours: 24
+
+TIER 4 (Risk 0-49) - BASELINE:
+- recommended_prompt_category: "continue_normal"
+- suggested_message: null
+- display_guidance: {"prominence": null, "style": "none"}
+- recommended_actions: ["Continue normal conversation", "Standard monitoring"]
+- reporting_deadline_hours: 168
+
+Add contextual adjustments:
+- If context.time_of_day is 2am-6am: add "⏰ It's very late. If you're in crisis, please reach out to 988 now." to Tier 2 messages
+- If context.session_count_today >= 4: add "Note: Heavy usage pattern detected" to company actions
+- If context.previous_alerts_14d >= 2: add "ESCALATION: X alerts in 14 days" to company actions
+
+Include these fields in the API response under "prompt_recommendation":
+{
+  "tier": 1,
+  "tier_label": "IMMEDIATE",
+  "category": "crisis_resources_prominent",
+  "message_type": "immediate_crisis_intervention",
+  "suggested_message": "...",
+  "display_guidance": {...},
+  "disclaimer": "These are recommendations only. Your app determines actual implementation.",
+  "recommended_actions": [...],
+  "reporting_deadline_hours": 1,
+  "contextual_adjustments": [...]
+}
+
+Test with a Tier 1 message to verify prompt_recommendation appears in response.

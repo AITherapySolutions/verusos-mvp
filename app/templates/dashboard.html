@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerusOS - Compliance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-indigo-700 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold">VerusOS</h1>
+                    <span class="text-indigo-200">Compliance Dashboard</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm">Reviewer: <strong>Tammy</strong></span>
+                    <button onclick="exportComplianceReport()" class="bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded-lg text-sm">
+                        📊 Export Report
+                    </button>
+                    <button onclick="generateProtocolPage()" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm">
+                        Generate Protocol Page
+                    </button>
+                    <button onclick="refreshData()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" id="stats-cards">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm text-gray-500">Active Alerts</div>
+                <div class="text-3xl font-bold text-indigo-600" id="pending-reviews">-</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm text-gray-500">Overdue Reviews</div>
+                <div class="text-3xl font-bold text-red-600" id="overdue-reviews">-</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm text-gray-500">Avg Response Time</div>
+                <div class="text-3xl font-bold text-green-600" id="avg-response">-</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm text-gray-500">Compliance Rate</div>
+                <div class="text-3xl font-bold text-blue-600" id="compliance-rate">-</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-4 mb-8" id="tier-stats">
+            <div class="bg-red-100 border-l-4 border-red-500 p-4 rounded">
+                <div class="text-sm text-red-700">Tier 1 - Immediate</div>
+                <div class="text-2xl font-bold text-red-800" id="tier-1-count">0</div>
+            </div>
+            <div class="bg-orange-100 border-l-4 border-orange-500 p-4 rounded">
+                <div class="text-sm text-orange-700">Tier 2 - Urgent</div>
+                <div class="text-2xl font-bold text-orange-800" id="tier-2-count">0</div>
+            </div>
+            <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded">
+                <div class="text-sm text-yellow-700">Tier 3 - Elevated</div>
+                <div class="text-2xl font-bold text-yellow-800" id="tier-3-count">0</div>
+            </div>
+            <div class="bg-green-100 border-l-4 border-green-500 p-4 rounded">
+                <div class="text-sm text-green-700">Tier 4 - Baseline</div>
+                <div class="text-2xl font-bold text-green-800" id="tier-4-count">0</div>
+            </div>
+        </div>
+
+        <!-- Protocol Generator Section -->
+        <div class="protocol-generator-section mb-8 p-6 bg-white rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Generate Custom Crisis Protocol</h3>
+                    <p class="text-sm text-gray-600">Create a customized crisis response protocol page for your app</p>
+                </div>
+                <button class="generate-protocol-btn bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg text-white font-medium" onclick="openProtocolGenerator()">
+                    📄 Generate Protocol
+                </button>
+            </div>
+        </div>
+
+        <!-- Export Section -->
+        <div class="export-section mb-8 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg shadow border border-purple-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">📊 Export Compliance Data</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button class="export-btn export-btn-detailed" onclick="exportDetailed()">
+                    <div class="text-2xl mb-2">📄</div>
+                    <div class="font-semibold text-sm">Detailed Report</div>
+                    <div class="text-xs text-gray-600 mt-1">Complete dataset with 40+ columns</div>
+                </button>
+                <button class="export-btn export-btn-summary" onclick="exportSummary()">
+                    <div class="text-2xl mb-2">📈</div>
+                    <div class="font-semibold text-sm">Summary Statistics</div>
+                    <div class="text-xs text-gray-600 mt-1">High-level metrics only</div>
+                </button>
+                <button class="export-btn export-btn-custom" onclick="openCustomExportModal()">
+                    <div class="text-2xl mb-2">🔍</div>
+                    <div class="font-semibold text-sm">Custom Export</div>
+                    <div class="text-xs text-gray-600 mt-1">Filter by date and company</div>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex space-x-4 mb-6">
+            <button onclick="filterAlerts(null)" class="filter-btn active px-4 py-2 rounded-lg bg-indigo-600 text-white">All</button>
+            <button onclick="filterAlerts(1)" class="filter-btn px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Tier 1</button>
+            <button onclick="filterAlerts(2)" class="filter-btn px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Tier 2</button>
+            <button onclick="filterAlerts(3)" class="filter-btn px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Tier 3</button>
+            <button onclick="filterAlerts('pending')" class="filter-btn px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Pending Review</button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b">
+                <h2 class="text-xl font-semibold">Alerts Requiring Review</h2>
+            </div>
+            <div id="alerts-container" class="divide-y">
+                <div class="p-8 text-center text-gray-500">Loading alerts...</div>
+            </div>
+        </div>
+    </main>
+
+    <div id="review-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="px-6 py-4 border-b flex justify-between items-center">
+                    <h3 class="text-xl font-semibold">Compliance Review</h3>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="modal-content" class="p-6">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Export Modal -->
+    <div id="customExportModal" class="export-modal">
+        <div class="export-modal-content">
+            <div class="modal-header">
+                <h2>🔍 Custom Export Options</h2>
+                <span class="close-modal" onclick="closeCustomExportModal()">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Export Type</label>
+                    <select id="exportTypeSelect" class="form-input">
+                        <option value="detailed">Detailed Report (40+ columns)</option>
+                        <option value="summary">Summary Statistics</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Company (Optional)</label>
+                    <input type="text" id="exportCompanyId" class="form-input" placeholder="Leave blank for all companies">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Start Date (Optional)</label>
+                        <input type="date" id="exportStartDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date (Optional)</label>
+                        <input type="date" id="exportEndDate" class="form-input">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="exportIncludeReviews" checked>
+                        <span>Include Compliance Reviews</span>
+                    </label>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="btn-cancel" onclick="closeCustomExportModal()">Cancel</button>
+                    <button class="btn-submit" onclick="submitCustomExport()">Download CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Protocol Generator Modal -->
+    <div id="protocolModal" class="protocol-modal">
+        <div class="protocol-modal-content">
+            <div class="modal-header">
+                <h2>Crisis Protocol Generator</h2>
+                <span class="close-modal" onclick="closeProtocolModal()">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <p>Generate your ready-to-publish crisis response protocol page.</p>
+                
+                <h3>Protocol Preview:</h3>
+                <div id="protocolPreview" class="protocol-preview">
+                    Generating...
+                </div>
+                
+                <div class="download-btns">
+                    <button id="downloadMarkdown" class="download-btn download-markdown" 
+                            onclick="downloadMarkdown()" disabled>
+                        📄 Download Markdown
+                    </button>
+                    <button id="downloadHTML" class="download-btn download-html" 
+                            onclick="downloadHTML()" disabled>
+                        🌐 Download HTML
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 6px;">
+                    <strong>📋 Next Steps:</strong>
+                    <ol style="margin: 10px 0 0 20px;">
+                        <li>Download the HTML file</li>
+                        <li>Upload to your website at <code>/crisis-protocol</code></li>
+                        <li>Link it from your Terms of Service</li>
+                        <li>Update quarterly or as needed</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

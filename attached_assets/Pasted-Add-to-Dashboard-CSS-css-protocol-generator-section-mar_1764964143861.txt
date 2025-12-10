@@ -1,0 +1,171 @@
+Add to Dashboard CSS
+css.protocol-generator-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f0f9ff;
+    border: 2px solid #3b82f6;
+    border-radius: 8px;
+}
+
+.generate-protocol-btn {
+    background: #3b82f6;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.generate-protocol-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Protocol Modal */
+.protocol-modal {
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+}
+
+.protocol-modal-content {
+    background: white;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.protocol-preview {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.download-btns {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.download-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.download-markdown {
+    background: #10b981;
+    color: white;
+}
+
+.download-html {
+    background: #3b82f6;
+    color: white;
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+Add to Dashboard JavaScript
+javascript// Protocol Generator Functions
+
+function openProtocolGenerator() {
+    // Show modal
+    document.getElementById('protocolModal').style.display = 'block';
+    
+    // Generate protocol
+    generateProtocol();
+}
+
+function closeProtocolModal() {
+    document.getElementById('protocolModal').style.display = 'none';
+}
+
+async function generateProtocol() {
+    try {
+        const response = await fetch('/api/v1/protocol/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                company_name: 'Demo Company',  // Replace with actual company name
+                company_id: 'demo',  // Replace with actual company ID
+                protocol_version: '1.0',
+                contact_email: 'safety@example.com'  // Replace with actual email
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Store for download
+        window.currentProtocol = data;
+        
+        // Show preview
+        document.getElementById('protocolPreview').textContent = 
+            data.markdown.substring(0, 500) + '...';
+        
+        // Enable download buttons
+        document.getElementById('downloadMarkdown').disabled = false;
+        document.getElementById('downloadHTML').disabled = false;
+        
+    } catch (error) {
+        console.error('Error generating protocol:', error);
+        alert('Error generating protocol');
+    }
+}
+
+function downloadMarkdown() {
+    if (!window.currentProtocol) return;
+    
+    const blob = new Blob([window.currentProtocol.markdown], {type: 'text/markdown'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `crisis-protocol-${window.currentProtocol.company_id}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function downloadHTML() {
+    if (!window.currentProtocol) return;
+    
+    const blob = new Blob([window.currentProtocol.html], {type: 'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `crisis-protocol-${window.currentProtocol.company_id}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('protocolModal');
+    if (event.target == modal) {
+        closeProtocolModal();
+    }
+}

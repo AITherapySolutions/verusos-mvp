@@ -1,0 +1,624 @@
+"""
+Protocol Publishing Generator
+Generates ready-to-publish crisis response protocol documents
+"""
+
+from datetime import datetime
+from typing import Dict, Optional
+
+class ProtocolGenerator:
+    """
+    Generates crisis protocol documents for apps
+    Outputs HTML and Markdown formats
+    """
+    
+    @staticmethod
+    def generate_protocol(
+        company_name: str,
+        company_id: str,
+        protocol_version: str = "1.0",
+        contact_email: Optional[str] = None,
+        custom_resources: Optional[list] = None
+    ) -> Dict:
+        """
+        Generate complete crisis protocol document
+        
+        Args:
+            company_name: Name of the app/company
+            company_id: Company identifier
+            protocol_version: Version number
+            contact_email: Contact email for questions
+            custom_resources: Additional crisis resources
+            
+        Returns:
+            Dict with markdown and HTML versions
+        """
+        
+        # Generate markdown version
+        markdown = ProtocolGenerator._generate_markdown(
+            company_name=company_name,
+            company_id=company_id,
+            protocol_version=protocol_version,
+            contact_email=contact_email,
+            custom_resources=custom_resources
+        )
+        
+        # Generate HTML version
+        html = ProtocolGenerator._generate_html(
+            company_name=company_name,
+            company_id=company_id,
+            protocol_version=protocol_version,
+            contact_email=contact_email,
+            custom_resources=custom_resources
+        )
+        
+        return {
+            'company_name': company_name,
+            'company_id': company_id,
+            'protocol_version': protocol_version,
+            'generated_date': datetime.utcnow().isoformat(),
+            'markdown': markdown,
+            'html': html,
+            'publish_url': f'/protocols/{company_id}/v{protocol_version}'
+        }
+    
+    @staticmethod
+    def _generate_markdown(
+        company_name: str,
+        company_id: str,
+        protocol_version: str,
+        contact_email: Optional[str],
+        custom_resources: Optional[list]
+    ) -> str:
+        """Generate markdown version of protocol"""
+        
+        current_date = datetime.utcnow().strftime("%B %Y")
+        
+        # Build custom resources section
+        custom_resources_section = ""
+        if custom_resources:
+            custom_resources_section = "### Additional Resources\n" + "\n".join([f"- {resource}" for resource in custom_resources])
+        
+        markdown = f"""# {company_name} Crisis Response Protocol
+
+**Last Updated:** {current_date}  
+**Protocol Version:** {protocol_version}  
+**Oversight Provider:** VerusOS (Licensed Clinical Supervision)
+
+---
+
+## Our Commitment to Safety
+
+{company_name} uses evidence-based crisis detection with licensed therapist oversight to ensure user safety. All crisis detections are monitored by **Tammy Horn, Licensed Trauma Therapist**, to ensure appropriate response and compliance.
+
+---
+
+## Crisis Detection System
+
+We use a validated crisis detection model that analyzes:
+
+- **Language patterns** indicating distress
+- **Self-harm or suicidal ideation**
+- **Boundary concerns** in AI interactions
+- **Temporal patterns** over time
+
+Our system is based on peer-reviewed research and achieves 93%+ sensitivity for crisis detection.
+
+---
+
+## Risk Levels & Our Response
+
+### 🚨 Tier 1: Immediate Crisis (Risk Score 90-100)
+
+**What triggers this:**
+- Explicit suicide ideation or planning
+- Imminent self-harm indicators
+- Severe distress with immediate danger
+
+**Our response (within 1 hour):**
+- Prominent display of crisis resources
+- 988 Suicide & Crisis Lifeline shown immediately
+- Crisis Text Line information provided
+- Safety team notified immediately
+- Account flagged for monitoring
+- Incident logged in compliance system
+
+**User sees:**
+> "We're concerned about your safety. Please reach out for help:  
+> 🆘 988 Suicide & Crisis Lifeline (call or text)  
+> 📱 Crisis Text Line: Text HOME to 741741"
+
+---
+
+### ⚠️ Tier 2: Urgent Concern (Risk Score 70-89)
+
+**What triggers this:**
+- Elevated risk indicators
+- Concerning language patterns
+- Expressions of hopelessness
+- Repeated distress signals
+
+**Our response (within 4 hours):**
+- Crisis resources offered with context
+- Safety team reviews within 4 hours
+- Usage patterns monitored
+- Escalation prepared if needed
+
+**User sees:**
+> "It sounds like you're going through a difficult time. Here are some resources that might help:  
+> 988 Suicide & Crisis Lifeline  
+> Crisis Text Line: Text HOME to 741741"
+
+---
+
+### ⚡ Tier 3: Elevated Monitoring (Risk Score 50-69)
+
+**What triggers this:**
+- Emerging concerns
+- Boundary issues detected
+- Mild distress signals
+- Pattern changes
+
+**Our response (within 24 hours):**
+- Gentle wellness check messaging
+- Daily compliance review
+- Pattern tracking for escalation
+- Resources available if requested
+
+**User sees:**
+> "I'm here if you want to talk. Remember, support is available if you need it."
+
+---
+
+### ✅ Tier 4: Baseline (Risk Score 0-49)
+
+**What triggers this:**
+- No immediate concerns detected
+- Normal conversation patterns
+
+**Our response:**
+- Continue normal conversation
+- Standard monitoring
+- Weekly aggregated review
+
+---
+
+## Crisis Resources We Provide
+
+### United States
+- **988 Suicide & Crisis Lifeline**
+  - Call or text 988
+  - Available 24/7
+  - Free and confidential
+
+- **Crisis Text Line**
+  - Text HOME to 741741
+  - Available 24/7
+  - Trained crisis counselors
+
+### International
+- **International Association for Suicide Prevention**
+  - https://www.iasp.info/resources/Crisis_Centres/
+  - Crisis centers worldwide
+
+- **Befrienders Worldwide**
+  - https://www.befrienders.org
+  - Global support network
+
+{custom_resources_section}
+
+---
+
+## Professional Oversight
+
+All crisis detections are reviewed by:
+
+**Tammy Horn, Licensed Trauma Therapist**  
+*License #[number], State*  
+*30 years clinical experience*
+
+Licensed clinical oversight ensures:
+- ✅ Protocol compliance verification
+- ✅ Appropriate response timing
+- ✅ Clinical appropriateness of actions
+- ✅ Quality assurance reviews
+
+---
+
+## Transparency & Reporting
+
+We maintain complete audit trails of:
+
+- **All crisis detections** with risk scores
+- **Response times** for all tiers
+- **Actions taken** by our team
+- **User outcomes** (anonymized)
+- **Compliance reviews** by licensed therapist
+
+**Annual compliance reports available upon request.**
+
+---
+
+## Our Safety Standards
+
+### Detection Accuracy
+- **93%+ sensitivity** for crisis detection
+- **<30 second** response time
+- **99%+ uptime** for safety systems
+
+### Response Times
+- **Tier 1:** <1 hour response required
+- **Tier 2:** <4 hour response required
+- **Tier 3:** <24 hour response required
+- **Tier 4:** Weekly review
+
+### Quality Assurance
+- Licensed therapist oversight
+- Regular protocol reviews (quarterly)
+- Continuous system monitoring
+- Third-party compliance audits
+
+---
+
+## Privacy & Data Protection
+
+- All user data encrypted (AES-256)
+- User identifiers hashed (SHA-256)
+- HIPAA-style security standards
+- Minimal data retention
+- User data deletion available
+
+---
+
+## Questions About Our Protocol?
+
+**Contact:** {contact_email if contact_email else '[Your contact information]'}
+
+**VerusOS Safety Infrastructure:** https://verusos.com
+
+---
+
+## Protocol Updates
+
+This protocol is reviewed quarterly and updated as needed based on:
+- Clinical best practices
+- Regulatory requirements
+- System performance data
+- User safety outcomes
+
+**Last Review:** {current_date}  
+**Next Review:** [Quarterly]
+
+---
+
+*This crisis response protocol is powered by VerusOS, a licensed clinical oversight platform for AI safety.*
+"""
+        
+        return markdown
+    
+    @staticmethod
+    def _generate_html(
+        company_name: str,
+        company_id: str,
+        protocol_version: str,
+        contact_email: Optional[str],
+        custom_resources: Optional[list]
+    ) -> str:
+        """Generate HTML version of protocol"""
+        
+        current_date = datetime.utcnow().strftime("%B %Y")
+        
+        # Build custom resources section for HTML
+        custom_resources_html = ""
+        if custom_resources:
+            custom_resources_html = "\n".join([f"<li>{resource}</li>" for resource in custom_resources])
+        
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{company_name} - Crisis Response Protocol</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }}
+        
+        .container {{
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }}
+        
+        header {{
+            border-bottom: 4px solid #5b47fb;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }}
+        
+        h1 {{
+            color: #5b47fb;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }}
+        
+        .meta {{
+            color: #666;
+            font-size: 0.9em;
+        }}
+        
+        h2 {{
+            color: #333;
+            font-size: 1.8em;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }}
+        
+        h3 {{
+            color: #5b47fb;
+            font-size: 1.4em;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }}
+        
+        .tier-section {{
+            background: #f9f9f9;
+            border-left: 4px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        
+        .tier-1 {{ border-left-color: #ef4444; }}
+        .tier-2 {{ border-left-color: #f59e0b; }}
+        .tier-3 {{ border-left-color: #eab308; }}
+        .tier-4 {{ border-left-color: #10b981; }}
+        
+        .user-message {{
+            background: #fff;
+            border: 2px solid #5b47fb;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-style: italic;
+        }}
+        
+        ul {{
+            margin: 15px 0 15px 30px;
+        }}
+        
+        li {{
+            margin: 8px 0;
+        }}
+        
+        .resources {{
+            background: #f0f9ff;
+            border: 2px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }}
+        
+        .resources h3 {{
+            color: #1e40af;
+            margin-top: 0;
+        }}
+        
+        .oversight-box {{
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }}
+        
+        .stats {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }}
+        
+        .stat-box {{
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }}
+        
+        .stat-number {{
+            font-size: 2em;
+            color: #5b47fb;
+            font-weight: bold;
+        }}
+        
+        .stat-label {{
+            color: #666;
+            font-size: 0.9em;
+        }}
+        
+        footer {{
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            color: #666;
+            font-size: 0.9em;
+            text-align: center;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{company_name} Crisis Response Protocol</h1>
+            <div class="meta">
+                <strong>Last Updated:</strong> {current_date}<br>
+                <strong>Protocol Version:</strong> {protocol_version}<br>
+                <strong>Oversight Provider:</strong> VerusOS (Licensed Clinical Supervision)
+            </div>
+        </header>
+        
+        <section>
+            <h2>Our Commitment to Safety</h2>
+            <p>{company_name} uses evidence-based crisis detection with licensed therapist oversight to ensure user safety. All crisis detections are monitored by <strong>Tammy Horn, Licensed Trauma Therapist</strong>, to ensure appropriate response and compliance.</p>
+        </section>
+        
+        <section>
+            <h2>Crisis Detection System</h2>
+            <p>We use a validated crisis detection model that analyzes:</p>
+            <ul>
+                <li><strong>Language patterns</strong> indicating distress</li>
+                <li><strong>Self-harm or suicidal ideation</strong></li>
+                <li><strong>Boundary concerns</strong> in AI interactions</li>
+                <li><strong>Temporal patterns</strong> over time</li>
+            </ul>
+            <p>Our system is based on peer-reviewed research and achieves 93%+ sensitivity for crisis detection.</p>
+        </section>
+        
+        <section>
+            <h2>Risk Levels & Our Response</h2>
+            
+            <div class="tier-section tier-1">
+                <h3>🚨 Tier 1: Immediate Crisis (Risk Score 90-100)</h3>
+                
+                <p><strong>What triggers this:</strong></p>
+                <ul>
+                    <li>Explicit suicide ideation or planning</li>
+                    <li>Imminent self-harm indicators</li>
+                    <li>Severe distress with immediate danger</li>
+                </ul>
+                
+                <p><strong>Our response (within 1 hour):</strong></p>
+                <ul>
+                    <li>Prominent display of crisis resources</li>
+                    <li>988 Suicide & Crisis Lifeline shown immediately</li>
+                    <li>Crisis Text Line information provided</li>
+                    <li>Safety team notified immediately</li>
+                    <li>Account flagged for monitoring</li>
+                </ul>
+                
+                <div class="user-message">
+                    "We're concerned about your safety. Please reach out for help:<br>
+                    🆘 988 Suicide & Crisis Lifeline (call or text)<br>
+                    📱 Crisis Text Line: Text HOME to 741741"
+                </div>
+            </div>
+            
+            <div class="tier-section tier-2">
+                <h3>⚠️ Tier 2: Urgent Concern (Risk Score 70-89)</h3>
+                
+                <p><strong>What triggers this:</strong></p>
+                <ul>
+                    <li>Elevated risk indicators</li>
+                    <li>Concerning language patterns</li>
+                    <li>Expressions of hopelessness</li>
+                </ul>
+                
+                <p><strong>Our response (within 4 hours):</strong></p>
+                <ul>
+                    <li>Crisis resources offered with context</li>
+                    <li>Safety team reviews within 4 hours</li>
+                    <li>Usage patterns monitored</li>
+                </ul>
+                
+                <div class="user-message">
+                    "It sounds like you're going through a difficult time. Here are some resources that might help:<br>
+                    988 Suicide & Crisis Lifeline<br>
+                    Crisis Text Line: Text HOME to 741741"
+                </div>
+            </div>
+            
+            <div class="tier-section tier-3">
+                <h3>⚡ Tier 3: Elevated Monitoring (Risk Score 50-69)</h3>
+                
+                <p><strong>Our response (within 24 hours):</strong></p>
+                <ul>
+                    <li>Gentle wellness check messaging</li>
+                    <li>Daily compliance review</li>
+                    <li>Pattern tracking for escalation</li>
+                </ul>
+            </div>
+            
+            <div class="tier-section tier-4">
+                <h3>✅ Tier 4: Baseline (Risk Score 0-49)</h3>
+                <p>Continue normal conversation with standard monitoring.</p>
+            </div>
+        </section>
+        
+        <section class="resources">
+            <h3>Crisis Resources We Provide</h3>
+            
+            <h4>United States</h4>
+            <ul>
+                <li><strong>988 Suicide & Crisis Lifeline</strong> - Call or text 988 (24/7)</li>
+                <li><strong>Crisis Text Line</strong> - Text HOME to 741741 (24/7)</li>
+            </ul>
+            
+            <h4>International</h4>
+            <ul>
+                <li><strong>International Association for Suicide Prevention</strong> - https://www.iasp.info/resources/Crisis_Centres/</li>
+                <li><strong>Befrienders Worldwide</strong> - https://www.befrienders.org</li>
+            </ul>
+        </section>
+        
+        <section class="oversight-box">
+            <h2>Professional Oversight</h2>
+            <p>All crisis detections are reviewed by:</p>
+            <p><strong>Tammy Horn, Licensed Trauma Therapist</strong><br>
+            <em>30 years clinical experience</em></p>
+            
+            <p>Licensed clinical oversight ensures:</p>
+            <ul>
+                <li>✅ Protocol compliance verification</li>
+                <li>✅ Appropriate response timing</li>
+                <li>✅ Clinical appropriateness of actions</li>
+                <li>✅ Quality assurance reviews</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2>Our Safety Standards</h2>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number">93%+</div>
+                    <div class="stat-label">Detection Sensitivity</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">&lt;30s</div>
+                    <div class="stat-label">Response Time</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">99%+</div>
+                    <div class="stat-label">System Uptime</div>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p><strong>Questions About Our Protocol?</strong></p>
+            <p>Contact: {contact_email if contact_email else '[Your contact information]'}</p>
+            <p><em>This crisis response protocol is powered by VerusOS, a licensed clinical oversight platform for AI safety.</em></p>
+            <p>Last Review: {current_date} | Next Review: Quarterly</p>
+        </footer>
+    </div>
+</body>
+</html>"""
+        
+        return html
+
+
+protocol_generator = ProtocolGenerator()

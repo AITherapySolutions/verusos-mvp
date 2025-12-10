@@ -1,0 +1,372 @@
+FILE: database/migrations/003_add_compliance_reviews.sql
+Create new migration file:
+sql-- Compliance Reviews Table
+CREATE TABLE IF NOT EXISTS compliance_reviews (
+    id SERIAL PRIMARY KEY,
+    assessment_id VARCHAR(255) NOT NULL,
+    reviewer_name VARCHAR(255) DEFAULT 'Tammy Horn',
+    reviewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Assessment decision (3 options)
+    assessment_status VARCHAR(50) NOT NULL,
+    -- Values: 'compliant', 'needs_followup', 'non_compliant'
+    
+    -- Assessment details
+    protocol_followed VARCHAR(50),
+    -- Values: 'yes', 'no', 'partial'
+    
+    response_time_acceptable VARCHAR(50),
+    -- Values: 'yes', 'no'
+    
+    actions_appropriate VARCHAR(50),
+    -- Values: 'yes', 'no', 'could_improve'
+    
+    -- Reviewer notes
+    reviewer_notes TEXT,
+    
+    -- Metadata
+    review_duration_seconds INTEGER,
+    flags_noted TEXT[],
+    
+    -- Foreign key
+    FOREIGN KEY (assessment_id) REFERENCES detections(assessment_id) ON DELETE CASCADE,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index for fast lookups
+CREATE INDEX idx_compliance_reviews_assessment ON compliance_reviews(assessment_id);
+CREATE INDEX idx_compliance_reviews_status ON compliance_reviews(assessment_status);
+CREATE INDEX idx_compliance_reviews_date ON compliance_reviews(reviewed_at);
+
+-- Trigger to update updated_at
+CREATE OR REPLACE FUNCTION update_compliance_review_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_compliance_reviews_timestamp
+BEFORE UPDATE ON compliance_reviews
+FOR EACH ROW
+EXECUTE FUNCTION update_compliance_review_timestamp();
+
+PART 2: Backend API
+FILE: app/api/review.py
+Create new file:
+python"""
+Compliance Review API
+Tammy's review workflow for alert assessments
+"""
+
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, Field
+from typing import Optional, List
+from datetime import datetime
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+router = APIRouter()
+
+# Database connection (adjust to your setup)
+def get_db_connection():
+    """Get database connection"""
+    # TODO: Replace with your actual DB connection
+    conn = psycopg2.connect(
+        host="localhost",
+        database="verusos",
+        user="postgres",
+        password="password"
+    )
+    return conn
+
+class ReviewRequest(BaseModel):
+    """Request to submit compliance review"""
+    assessment_id: str = Field(..., description="Alert assessment ID")
+    
+    # Assessment decision (required)
+    assessment_status: str = Field(
+        ..., 
+        description="Assessment status",
+        regex="^(compliant|needs_followup|non_compliant)$"
+    )
+    
+    # Assessment details
+    protocol_followed: Optional[str] = Field(
+        None,
+        description="Did company follow protocol?",
+        regex="^(yes|no|partial)$"
+    )
+    
+    response_time_acceptable: Optional[str] = Field(
+        None,
+        description="Was response time acceptable?",
+        regex="^(yes|no)$"
+    )
+    
+    actions_appropriate: Optional[str] = Field(
+        None,
+        description="Were actions appropriate?",
+        regex="^(yes|no|could_improve)$"
+    )
+    
+    reviewer_notes: Optional[str] = Field(
+        None,
+        max_length=2000,
+        description="Reviewer's notes"
+    )
+    
+    review_duration_seconds: Optional[int] = Field(
+        None,
+        description="How long review took (seconds)"
+    )
+    
+    flags_noted: Optional[List[str]] = Field(
+        default=[],
+        description="Any flags noted during review"
+    )
+
+class ReviewResponse(BaseModel):
+    """Response after submitting review"""
+    review_id: int
+    assessment_id: str
+    assessment_status: str
+    reviewed_at: datetime
+    message: str
+
+@router.post("/submit", response_model=ReviewResponse)
+async def submit_review(review: ReviewRequest):
+    """
+    Submit compliance review for an alert
+    
+    Tammy uses this to record her assessment of company response
+    """
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Verify assessment exists
+        cursor.execute(
+            "SELECT assessment_id FROM detections WHERE assessment_id = %s",
+            (review.assessment_id,)
+        )
+        
+        if not cursor.fetchone():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Assessment {review.assessment_id} not found"
+            )
+        
+        # Check if already reviewed
+        cursor.execute(
+            "SELECT id FROM compliance_reviews WHERE assessment_id = %s",
+            (review.assessment_id,)
+        )
+        
+        existing_review = cursor.fetchone()
+        
+        if existing_review:
+            # Update existing review
+            cursor.execute("""
+                UPDATE compliance_reviews
+                SET assessment_status = %s,
+                    protocol_followed = %s,
+                    response_time_acceptable = %s,
+                    actions_appropriate = %s,
+                    reviewer_notes = %s,
+                    review_duration_seconds = %s,
+                    flags_noted = %s,
+                    reviewed_at = CURRENT_TIMESTAMP
+                WHERE assessment_id = %s
+                RETURNING id, reviewed_at
+            """, (
+                review.assessment_status,
+                review.protocol_followed,
+                review.response_time_acceptable,
+                review.actions_appropriate,
+                review.reviewer_notes,
+                review.review_duration_seconds,
+                review.flags_noted,
+                review.assessment_id
+            ))
+            
+            result = cursor.fetchone()
+            review_id = result['id']
+            reviewed_at = result['reviewed_at']
+            message = "Review updated successfully"
+            
+        else:
+            # Insert new review
+            cursor.execute("""
+                INSERT INTO compliance_reviews (
+                    assessment_id,
+                    assessment_status,
+                    protocol_followed,
+                    response_time_acceptable,
+                    actions_appropriate,
+                    reviewer_notes,
+                    review_duration_seconds,
+                    flags_noted
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, reviewed_at
+            """, (
+                review.assessment_id,
+                review.assessment_status,
+                review.protocol_followed,
+                review.response_time_acceptable,
+                review.actions_appropriate,
+                review.reviewer_notes,
+                review.review_duration_seconds,
+                review.flags_noted
+            ))
+            
+            result = cursor.fetchone()
+            review_id = result['id']
+            reviewed_at = result['reviewed_at']
+            message = "Review submitted successfully"
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return ReviewResponse(
+            review_id=review_id,
+            assessment_id=review.assessment_id,
+            assessment_status=review.assessment_status,
+            reviewed_at=reviewed_at,
+            message=message
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Review submission error: {str(e)}"
+        )
+
+@router.get("/alert/{assessment_id}")
+async def get_alert_for_review(assessment_id: str):
+    """
+    Get complete alert details for review
+    
+    Returns everything Tammy needs to assess compliance
+    """
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Get detection details
+        cursor.execute("""
+            SELECT 
+                d.*,
+                cr.assessment_status as review_status,
+                cr.reviewed_at,
+                cr.reviewer_notes
+            FROM detections d
+            LEFT JOIN compliance_reviews cr ON d.assessment_id = cr.assessment_id
+            WHERE d.assessment_id = %s
+        """, (assessment_id,))
+        
+        alert = cursor.fetchone()
+        
+        if not alert:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Alert {assessment_id} not found"
+            )
+        
+        # Get company response if exists
+        cursor.execute("""
+            SELECT *
+            FROM company_responses
+            WHERE assessment_id = %s
+            ORDER BY timestamp_responded DESC
+            LIMIT 1
+        """, (assessment_id,))
+        
+        company_response = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        return {
+            'alert': dict(alert),
+            'company_response': dict(company_response) if company_response else None,
+            'review_exists': alert.get('review_status') is not None
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching alert: {str(e)}"
+        )
+
+@router.get("/stats")
+async def get_review_stats():
+    """
+    Get compliance review statistics
+    
+    For dashboard display
+    """
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Get counts by status
+        cursor.execute("""
+            SELECT 
+                assessment_status,
+                COUNT(*) as count
+            FROM compliance_reviews
+            GROUP BY assessment_status
+        """)
+        
+        status_counts = {row['assessment_status']: row['count'] 
+                        for row in cursor.fetchall()}
+        
+        # Get pending reviews (alerts without reviews)
+        cursor.execute("""
+            SELECT COUNT(*) as pending
+            FROM detections d
+            LEFT JOIN compliance_reviews cr ON d.assessment_id = cr.assessment_id
+            WHERE cr.id IS NULL
+              AND d.risk_tier IN (1, 2, 3)
+        """)
+        
+        pending = cursor.fetchone()['pending']
+        
+        # Get average review time
+        cursor.execute("""
+            SELECT AVG(review_duration_seconds) as avg_duration
+            FROM compliance_reviews
+            WHERE review_duration_seconds IS NOT NULL
+        """)
+        
+        avg_duration = cursor.fetchone()['avg_duration']
+        
+        cursor.close()
+        conn.close()
+        
+        return {
+            'compliant': status_counts.get('compliant', 0),
+            'needs_followup': status_counts.get('needs_followup', 0),
+            'non_compliant': status_counts.get('non_compliant', 0),
+            'pending_review': pending,
+            'avg_review_duration_seconds': int(avg_duration) if avg_duration else 0
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching stats: {str(e)}"
+        )

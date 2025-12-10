@@ -1,0 +1,148 @@
+# After you calculate risk_score and risk_tier, add this:
+
+def get_prompt_recommendation(risk_tier, risk_score, context):
+    """Generate prompt recommendation based on risk tier"""
+    
+    # Base recommendations by tier
+    if risk_tier == 1:
+        recommendation = {
+            "tier": 1,
+            "tier_label": "IMMEDIATE",
+            "category": "crisis_resources_prominent",
+            "message_type": "immediate_crisis_intervention",
+            "suggested_message": (
+                "We're concerned about your safety. Please reach out for help:\n"
+                "🆘 988 Suicide & Crisis Lifeline (call or text)\n"
+                "📱 Crisis Text Line: Text HOME to 741741\n"
+                "🌐 International: https://findahelpline.com"
+            ),
+            "display_guidance": {
+                "prominence": "high",
+                "style": "modal_overlay",
+                "dismissable": False,
+                "requires_acknowledgment": True
+            },
+            "recommended_actions": [
+                "Display crisis resources immediately",
+                "Alert safety team NOW",
+                "Flag account for monitoring",
+                "Log incident in compliance system"
+            ],
+            "reporting_deadline_hours": 1
+        }
+    
+    elif risk_tier == 2:
+        recommendation = {
+            "tier": 2,
+            "tier_label": "URGENT",
+            "category": "safety_check_with_resources",
+            "message_type": "concerned_with_resources",
+            "suggested_message": (
+                "It sounds like you're going through a difficult time. "
+                "Here are some resources that might help:\n"
+                "988 Suicide & Crisis Lifeline\n"
+                "Crisis Text Line: Text HOME to 741741"
+            ),
+            "display_guidance": {
+                "prominence": "medium",
+                "style": "persistent_banner",
+                "dismissable": True,
+                "requires_acknowledgment": False
+            },
+            "recommended_actions": [
+                "Offer crisis resources with context",
+                "Safety team review within 4 hours",
+                "Monitor usage patterns",
+                "Prepare for escalation if needed"
+            ],
+            "reporting_deadline_hours": 4
+        }
+    
+    elif risk_tier == 3:
+        recommendation = {
+            "tier": 3,
+            "tier_label": "ELEVATED",
+            "category": "wellness_check",
+            "message_type": "gentle_check_in",
+            "suggested_message": (
+                "I'm here if you want to talk. "
+                "Remember, support is available if you need it."
+            ),
+            "display_guidance": {
+                "prominence": "low",
+                "style": "inline_suggestion",
+                "dismissable": True,
+                "requires_acknowledgment": False
+            },
+            "recommended_actions": [
+                "Gentle wellness check message",
+                "Daily compliance review",
+                "Track for pattern escalation",
+                "Resources available if requested"
+            ],
+            "reporting_deadline_hours": 24
+        }
+    
+    else:  # Tier 4
+        recommendation = {
+            "tier": 4,
+            "tier_label": "BASELINE",
+            "category": "continue_normal",
+            "message_type": None,
+            "suggested_message": None,
+            "display_guidance": {
+                "prominence": None,
+                "style": "none",
+                "dismissable": None,
+                "requires_acknowledgment": False
+            },
+            "recommended_actions": [
+                "Continue normal conversation",
+                "Standard monitoring",
+                "Weekly aggregated review"
+            ],
+            "reporting_deadline_hours": 168
+        }
+    
+    # Apply contextual adjustments
+    adjustments = []
+    
+    # Late night adjustment
+    if context and context.get('time_of_day') in ['2am', '3am', '4am', '5am', '6am']:
+        adjustments.append('late_night_increase')
+        if risk_tier == 2:
+            recommendation['suggested_message'] += (
+                "\n\n⏰ It's very late. If you're in crisis, please reach out to 988 now."
+            )
+    
+    # Heavy usage adjustment
+    if context and context.get('session_count_today', 0) >= 4:
+        adjustments.append('heavy_usage')
+        if risk_tier >= 2:
+            recommendation['recommended_actions'].append(
+                'Note: Heavy usage pattern detected'
+            )
+    
+    # Repeat alerts adjustment
+    if context and context.get('previous_alerts_14d', 0) >= 2:
+        adjustments.append('repeat_alerts')
+        recommendation['recommended_actions'].append(
+            f'ESCALATION: {context["previous_alerts_14d"]} alerts in 14 days'
+        )
+    
+    recommendation['contextual_adjustments'] = adjustments
+    recommendation['disclaimer'] = (
+        "These are recommendations only. Your app determines actual implementation."
+    )
+    
+    return recommendation
+
+# Then in your detection endpoint, after calculating risk_score and risk_tier:
+prompt_recommendation = get_prompt_recommendation(
+    risk_tier=risk_tier,
+    risk_score=risk_score,
+    context=request_data.get('context', {})
+)
+
+# Add to your response:
+response['prompt_recommendation'] = prompt_recommendation

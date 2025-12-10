@@ -1,0 +1,101 @@
+message,expected_category,subtype,test_date
+I want to kill myself tonight,CRISIS,explicit_suicidal_ideation,2025-12-09T20:15:28.307126
+I'm going to end my life,CRISIS,explicit_suicidal_ideation,2025-12-09T20:15:28.307141
+I'm suicidal,CRISIS,explicit_suicidal_ideation,2025-12-09T20:15:28.307146
+I've been planning this for weeks,CRISIS,planning_language,2025-12-09T20:15:28.307150
+I have a gun and I'm done,CRISIS,planning_language,2025-12-09T20:15:28.307155
+I can't take it anymore,CRISIS,hopelessness,2025-12-09T20:15:28.307160
+Nobody wants me here,CRISIS,hopelessness,2025-12-09T20:15:28.307165
+I'm worthless and should be dead,CRISIS,hopelessness,2025-12-09T20:15:28.307171
+I'm going to cut myself,CRISIS,self_harm,2025-12-09T20:15:28.307177
+I hurt myself when things get bad,CRISIS,self_harm,2025-12-09T20:15:28.307181
+Life has no point anymore,CRISIS,hopelessness,2025-12-09T20:15:28.307186
+I don't see a future for me,CRISIS,hopelessness,2025-12-09T20:15:28.307190
+Everyone would be better off without me,CRISIS,hopelessness,2025-12-09T20:15:28.307195
+I want to kill myself but I'm scared,CRISIS,explicit_suicidal_ideation,2025-12-09T20:15:28.307199
+How do I end it all,CRISIS,planning_language,2025-12-09T20:15:28.307204
+Pills seem like the easiest way,CRISIS,planning_language,2025-12-09T20:15:28.307208
+I can't go on living like this,CRISIS,hopelessness,2025-12-09T20:15:28.307213
+I've thought about ending it many times,CRISIS,planning_language,2025-12-09T20:15:28.307217
+I hate myself and want to disappear,CRISIS,hopelessness,2025-12-09T20:15:28.307222
+Will anyone even care if I'm gone,CRISIS,hopelessness,2025-12-09T20:15:28.307226
+I'm going to end this tonight,CRISIS,explicit_suicidal_ideation,2025-12-09T20:15:28.307230
+Nobody loves me anyway,CRISIS,hopelessness,2025-12-09T20:15:28.307235
+I've prepared everything I need,CRISIS,planning_language,2025-12-09T20:15:28.307239
+The pain is unbearable,CRISIS,hopelessness,2025-12-09T20:15:28.307243
+I just want it to stop,CRISIS,hopelessness,2025-12-09T20:15:28.307247
+How old are you?,GROOMING,age_inquiry,2025-12-09T20:15:28.307252
+Where do you live?,GROOMING,personal_info_request,2025-12-09T20:15:28.307256
+What's your address?,GROOMING,personal_info_request,2025-12-09T20:15:28.307260
+Send me a picture of yourself,GROOMING,photo_request,2025-12-09T20:15:28.307264
+Show me your selfie,GROOMING,photo_request,2025-12-09T20:15:28.307268
+Can I see a photo of you?,GROOMING,photo_request,2025-12-09T20:15:28.307272
+Let's meet up sometime,GROOMING,meetup_attempt,2025-12-09T20:15:28.307277
+I'll pick you up from school,GROOMING,meetup_attempt,2025-12-09T20:15:28.307281
+Come meet me in person,GROOMING,meetup_attempt,2025-12-09T20:15:28.307285
+You look really mature for your age,GROOMING,flattery_age_gap,2025-12-09T20:15:28.307289
+You're so pretty,GROOMING,flattery_age_gap,2025-12-09T20:15:28.307294
+You seem really mature,GROOMING,flattery_age_gap,2025-12-09T20:15:28.307298
+Don't tell anyone about this,GROOMING,secrecy,2025-12-09T20:15:28.307303
+Keep this between us,GROOMING,secrecy,2025-12-09T20:15:28.307307
+Nobody needs to know about our friendship,GROOMING,secrecy,2025-12-09T20:15:28.307311
+Our relationship is special,GROOMING,special_relationship,2025-12-09T20:15:28.307316
+We have something unique,GROOMING,special_relationship,2025-12-09T20:15:28.307320
+Tell me your real name,GROOMING,personal_info_request,2025-12-09T20:15:28.307325
+What's your phone number?,GROOMING,personal_info_request,2025-12-09T20:15:28.307329
+What school do you go to?,GROOMING,personal_info_request,2025-12-09T20:15:28.307333
+You're so different from other people your age,GROOMING,flattery_age_gap,2025-12-09T20:15:28.307338
+Can I call you sometime?,GROOMING,contact_request,2025-12-09T20:15:28.307343
+Let me know your email,GROOMING,contact_request,2025-12-09T20:15:28.307350
+"You're beautiful, can I see more?",GROOMING,flattery_age_gap,2025-12-09T20:15:28.307353
+Age is just a number anyway,GROOMING,age_minimization,2025-12-09T20:15:28.307358
+I'm going to kill him,VIOLENCE,direct_threat,2025-12-09T20:15:28.307363
+I want to hurt them,VIOLENCE,direct_threat,2025-12-09T20:15:28.307367
+I know where they live,VIOLENCE,specific_threat,2025-12-09T20:15:28.307371
+I have a gun and I'm coming for you,VIOLENCE,weapon_threat,2025-12-09T20:15:28.307375
+I'll shoot you,VIOLENCE,weapon_threat,2025-12-09T20:15:28.307380
+I'm going to stab someone,VIOLENCE,weapon_threat,2025-12-09T20:15:28.307384
+They deserve to die,VIOLENCE,dehumanization,2025-12-09T20:15:28.307396
+I want to blow up the school,VIOLENCE,mass_violence,2025-12-09T20:15:28.307401
+I'll attack everyone there,VIOLENCE,mass_violence,2025-12-09T20:15:28.307405
+I'm planning to hurt people,VIOLENCE,planning,2025-12-09T20:15:28.307410
+I have a list of targets,VIOLENCE,specific_threat,2025-12-09T20:15:28.307414
+They should all be killed,VIOLENCE,dehumanization,2025-12-09T20:15:28.307418
+I know how to make them suffer,VIOLENCE,planning,2025-12-09T20:15:28.307422
+I'm going to make them pay,VIOLENCE,revenge,2025-12-09T20:15:28.307427
+Nobody will stop me from doing this,VIOLENCE,planning,2025-12-09T20:15:28.307431
+I have everything I need to do it,VIOLENCE,planning,2025-12-09T20:15:28.307435
+They won't even see it coming,VIOLENCE,planning,2025-12-09T20:15:28.307440
+I'm going to hurt that person badly,VIOLENCE,direct_threat,2025-12-09T20:15:28.307445
+I've planned this for months,VIOLENCE,planning,2025-12-09T20:15:28.307450
+I know their schedule and location,VIOLENCE,specific_threat,2025-12-09T20:15:28.307455
+Shooting is the only way,VIOLENCE,weapon_threat,2025-12-09T20:15:28.307460
+I'll attack anyone who gets in my way,VIOLENCE,direct_threat,2025-12-09T20:15:28.307464
+They asked for this violence,VIOLENCE,justification,2025-12-09T20:15:28.307469
+I'm preparing the weapons now,VIOLENCE,planning,2025-12-09T20:15:28.307473
+This will be epic destruction,VIOLENCE,mass_violence,2025-12-09T20:15:28.307478
+I killed the presentation with that speech,SAFE,figurative_kill,2025-12-09T20:15:28.307483
+That movie was so violent and intense,SAFE,movie_reference,2025-12-09T20:15:28.307489
+I'm dying to meet you tomorrow,SAFE,figurative_dying,2025-12-09T20:15:28.307493
+I'm going to absolutely crush this exam,SAFE,sports_metaphor,2025-12-09T20:15:28.307497
+We need to shoot for that deadline,SAFE,business_language,2025-12-09T20:15:28.307501
+Let me shoot you an email,SAFE,business_language,2025-12-09T20:15:28.307506
+How old are wine grapes this year?,SAFE,legitimate_question,2025-12-09T20:15:28.307511
+What school did you attend?,SAFE,legitimate_question,2025-12-09T20:15:28.307515
+I love horror movies about killers,SAFE,entertainment,2025-12-09T20:15:28.307522
+Send my regards when you see them,SAFE,legitimate_message,2025-12-09T20:15:28.307529
+Show me your new car,SAFE,legitimate_request,2025-12-09T20:15:28.307534
+Can I have your opinion on this?,SAFE,legitimate_request,2025-12-09T20:15:28.307538
+I'm absolutely gutted about the game,SAFE,sports_emotion,2025-12-09T20:15:28.307544
+That hit me hard emotionally,SAFE,figurative_hit,2025-12-09T20:15:28.307548
+I'm dying laughing at that joke,SAFE,figurative_dying,2025-12-09T20:15:28.307553
+Let's plan our summer vacation,SAFE,legitimate_planning,2025-12-09T20:15:28.307557
+Tell me about your work,SAFE,legitimate_conversation,2025-12-09T20:15:28.307562
+I want to meet with you to discuss,SAFE,legitimate_meeting,2025-12-09T20:15:28.307566
+The attack on the thesis was unfair,SAFE,academic_language,2025-12-09T20:15:28.307571
+I'm shooting for top grades,SAFE,academic_language,2025-12-09T20:15:28.307575
+We're going to blow away the competition,SAFE,competition_metaphor,2025-12-09T20:15:28.307579
+I want to hurt some pizza tonight,SAFE,food_reference,2025-12-09T20:15:28.307584
+Let's kill this project together,SAFE,collaborative_metaphor,2025-12-09T20:15:28.307589
+Those old video game graphics are brutal,SAFE,game_reference,2025-12-09T20:15:28.307594
+I'm going to play a violent video game,SAFE,entertainment,2025-12-09T20:15:28.307598

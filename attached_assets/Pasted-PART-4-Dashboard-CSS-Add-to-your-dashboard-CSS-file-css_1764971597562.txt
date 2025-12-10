@@ -1,0 +1,639 @@
+PART 4: Dashboard CSS
+Add to your dashboard CSS file:
+css/* Review Modal Styles */
+.modal {
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.review-modal-content {
+    background-color: white;
+    margin: 0 auto;
+    padding: 0;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 1000px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 25px 30px;
+    border-bottom: 3px solid #5b47fb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #5b47fb 0%, #7c3aed 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.close-modal {
+    font-size: 32px;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.2s;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    transform: scale(1.2);
+}
+
+.modal-body {
+    padding: 30px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+/* Review Sections */
+.review-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #5b47fb;
+}
+
+.review-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.assessment-section {
+    background: #fff;
+    border: 2px solid #5b47fb;
+    border-left-width: 4px;
+}
+
+/* Detail Grid */
+.detail-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #666;
+}
+
+.detail-value {
+    color: #333;
+    font-weight: 500;
+}
+
+/* Assessment Options */
+.assessment-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin: 25px 0;
+}
+
+.assessment-btn {
+    padding: 25px 20px;
+    border: 3px solid #e0e0e0;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.assessment-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.assessment-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.assessment-btn.selected {
+    border-width: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    transform: scale(1.05);
+}
+
+.assessment-btn.compliant {
+    color: #10b981;
+}
+
+.assessment-btn.compliant.selected {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.assessment-btn.needs-followup {
+    color: #f59e0b;
+}
+
+.assessment-btn.needs-followup.selected {
+    border-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.assessment-btn.non-compliant {
+    color: #ef4444;
+}
+
+.assessment-btn.non-compliant.selected {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+.assessment-btn .icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.assessment-btn .label {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.assessment-btn .description {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #5b47fb;
+    box-shadow: 0 0 0 3px rgba(91, 71, 251, 0.1);
+}
+
+.form-control textarea {
+    resize: vertical;
+    font-family: inherit;
+    min-height: 100px;
+}
+
+.form-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.btn-cancel {
+    padding: 12px 30px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    color: #666;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-cancel:hover {
+    background: #f5f5f5;
+    border-color: #999;
+}
+
+.btn-submit {
+    padding: 12px 40px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #5b47fb 0%, #7c3aed 100%);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(91, 71, 251, 0.3);
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(91, 71, 251, 0.4);
+}
+
+.btn-submit:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Review Button in Alerts Table */
+.review-btn {
+    background: #5b47fb;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.review-btn:hover {
+    background: #4a38d1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(91, 71, 251, 0.3);
+}
+
+.review-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Status Badges in Table */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-badge.compliant {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.needs-followup {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.non-compliant {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge.pending {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+PART 5: Dashboard JavaScript
+Add to your dashboard JavaScript file:
+javascript// Global variables
+let currentAlert = null;
+let selectedAssessment = null;
+let reviewStartTime = null;
+
+// Open review modal
+async function openReviewModal(assessmentId) {
+    try {
+        reviewStartTime = Date.now();
+        
+        // Fetch alert details
+        const response = await fetch(`/api/v1/review/alert/${assessmentId}`);
+        const data = await response.json();
+        
+        currentAlert = data;
+        populateReviewModal(data);
+        
+        document.getElementById('reviewModal').style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+        
+    } catch (error) {
+        console.error('Error loading alert:', error);
+        alert('Error loading alert details');
+    }
+}
+
+// Close review modal
+function closeReviewModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    currentAlert = null;
+    selectedAssessment = null;
+    reviewStartTime = null;
+    resetReviewForm();
+}
+
+// Populate modal with alert data
+function populateReviewModal(data) {
+    const alert = data.alert;
+    const companyResponse = data.company_response;
+    
+    // Alert Details
+    const alertDetailsHtml = `
+        <div class="detail-row">
+            <span class="detail-label">Assessment ID:</span>
+            <span class="detail-value"><code>${alert.assessment_id}</code></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Timestamp:</span>
+            <span class="detail-value">${new Date(alert.timestamp).toLocaleString()}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Risk Tier:</span>
+            <span class="detail-value"><strong>Tier ${alert.risk_tier}</strong> - ${getTierLabel(alert.risk_tier)}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Risk Score:</span>
+            <span class="detail-value"><strong>${alert.risk_score}/100</strong></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Company:</span>
+            <span class="detail-value">${alert.company_id || 'Unknown'}</span>
+        </div>
+    `;
+    document.getElementById('alertDetails').innerHTML = alertDetailsHtml;
+    
+    // Detection Results
+    const flags = [];
+    if (alert.suicide_ideation) flags.push('🚨 Suicide Ideation');
+    if (alert.self_harm) flags.push('⚠️ Self-Harm');
+    if (alert.planning_language) flags.push('📋 Planning Language');
+    if (alert.hopelessness_markers) flags.push('😔 Hopelessness');
+    
+    const detectionHtml = `
+        <div class="detail-row">
+            <span class="detail-label">Confidence Score:</span>
+            <span class="detail-value">${(alert.confidence_score * 100).toFixed(1)}%</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Flags Detected:</span>
+            <span class="detail-value">${flags.join(', ') || 'None'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Keywords Matched:</span>
+            <span class="detail-value">${alert.keywords_matched || 'None'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Required Deadline:</span>
+            <span class="detail-value">${alert.reporting_deadline_hours} hours</span>
+        </div>
+    `;
+    document.getElementById('detectionResults').innerHTML = detectionHtml;
+    
+    // Company Response
+    if (companyResponse) {
+        const responseTime = calculateResponseTime(
+            alert.timestamp, 
+            companyResponse.timestamp_responded
+        );
+        
+        const withinDeadline = responseTime.hours <= alert.reporting_deadline_hours;
+        
+        const responseHtml = `
+            <div class="detail-row">
+                <span class="detail-label">Response Time:</span>
+                <span class="detail-value" style="color: ${withinDeadline ? '#10b981' : '#ef4444'}">
+                    ${responseTime.hours}h ${responseTime.minutes}m 
+                    ${withinDeadline ? '✅ Within deadline' : '❌ Over deadline'}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Crisis Resources Shown:</span>
+                <span class="detail-value">${companyResponse.crisis_resources_displayed ? '✅ Yes' : '❌ No'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">User Acknowledged:</span>
+                <span class="detail-value">${companyResponse.user_acknowledged_resources ? '✅ Yes' : 'Unknown'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Actions Taken:</span>
+                <span class="detail-value">${companyResponse.internal_actions || 'Not specified'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Outcome:</span>
+                <span class="detail-value">${companyResponse.outcome_details || 'Not reported'}</span>
+            </div>
+        `;
+        document.getElementById('companyResponseDetails').innerHTML = responseHtml;
+    } else {
+        document.getElementById('companyResponseDetails').innerHTML = `
+            <div class="alert alert-warning">
+                ⚠️ No company response received yet
+            </div>
+        `;
+    }
+}
+
+// Select assessment option
+function selectAssessment(status) {
+    selectedAssessment = status;
+    
+    // Update button states
+    document.querySelectorAll('.assessment-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    
+    document.querySelector(`[data-status="${status}"]`).classList.add('selected');
+    
+    // Show assessment details form
+    document.getElementById('assessmentDetailsForm').style.display = 'block';
+    
+    // Scroll to form
+    document.getElementById('assessmentDetailsForm').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'nearest' 
+    });
+}
+
+// Submit review
+async function submitReview() {
+    if (!selectedAssessment) {
+        alert('Please select an assessment option');
+        return;
+    }
+    
+    // Calculate review duration
+    const reviewDuration = Math.floor((Date.now() - reviewStartTime) / 1000);
+    
+    // Get form values
+    const reviewData = {
+        assessment_id: currentAlert.alert.assessment_id,
+        assessment_status: selectedAssessment,
+        protocol_followed: document.getElementById('protocolFollowed').value || null,
+        response_time_acceptable: document.getElementById('responseTimeAcceptable').value || null,
+        actions_appropriate: document.getElementById('actionsAppropriate').value || null,
+        reviewer_notes: document.getElementById('reviewerNotes').value || null,
+        review_duration_seconds: reviewDuration
+    };
+    
+    // Disable submit button
+    const submitBtn = document.getElementById('submitReviewBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    
+    try {
+        const response = await fetch('/api/v1/review/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reviewData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to submit review');
+        }
+        
+        const result = await response.json();
+        
+        // Show success message
+        alert('✅ Review submitted successfully!');
+        
+        // Close modal
+        closeReviewModal();
+        
+        // Refresh dashboard
+        refreshDashboard();
+        
+    } catch (error) {
+        console.error('Error submitting review:', error);
+        alert('❌ Error submitting review. Please try again.');
+        
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Review';
+    }
+}
+
+// Cancel review
+function cancelReview() {
+    if (confirm('Cancel this review? Your progress will be lost.')) {
+        closeReviewModal();
+    }
+}
+
+// Reset review form
+function resetReviewForm() {
+    selectedAssessment = null;
+    document.querySelectorAll('.assessment-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    document.getElementById('assessmentDetailsForm').style.display = 'none';
+    document.getElementById('protocolFollowed').value = '';
+    document.getElementById('responseTimeAcceptable').value = '';
+    document.getElementById('actionsAppropriate').value = '';
+    document.getElementById('reviewerNotes').value = '';
+}
+
+// Helper: Calculate response time
+function calculateResponseTime(detectionTime, responseTime) {
+    const diff = new Date(responseTime) - new Date(detectionTime);
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return { hours, minutes };
+}
+
+// Helper: Get tier label
+function getTierLabel(tier) {
+    const labels = {
+        1: 'IMMEDIATE',
+        2: 'URGENT',
+        3: 'ELEVATED',
+        4: 'BASELINE'
+    };
+    return labels[tier] || 'UNKNOWN';
+}
+
+// Refresh dashboard after review
+async function refreshDashboard() {
+    // Reload alerts list
+    // TODO: Implement your dashboard refresh logic
+    location.reload(); // Simple refresh for now
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('reviewModal');
+    if (event.target === modal) {
+        closeReviewModal();
+    }
+}
+
+// Keyboard shortcut: Escape to close
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const modal = document.getElementById('reviewModal');
+        if (modal && modal.style.display === 'block') {
+            closeReviewModal();
+        }
+    }
+});
