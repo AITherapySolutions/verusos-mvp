@@ -5,8 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api import detection, company, dashboard, protocol, review, export
 
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
